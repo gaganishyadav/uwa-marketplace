@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item Details</title>
+
+    <!-- Your main design system -->
+    <link rel="stylesheet" href="css/styles.css">
+
+    <!-- Page-specific styles (OPTION 1) -->
+    <style>
+        .item-layout {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 3rem;
+            align-items: start;
+        }
+
+        .item-image {
+            padding: 1.5rem;
+            border-radius: 12px;
+            background: #ffffff;
+        }
+
+        .item-image img {
+            width: 100%;
+            border-radius: 8px;
+        }
+
+        .item-title {
+            font-family: 'Manrope', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .item-price {
+            font-size: 2rem;
+            color: #FFB81C;
+            margin-bottom: 1.5rem;
+        }
+
+        .item-description {
+            color: #434748;
+            margin-bottom: 1.5rem;
+            line-height: 1.7;
+        }
+
+        .item-meta {
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.875rem;
+            color: #747778;
+            margin-bottom: 2rem;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .item-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .item-title {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<nav class="nav">
+    <div class="nav-container">
+        <div class="nav-brand">
+            <span class="logo-icon">📚</span>
+            UWA Swap-Meet
+        </div>
+
+        <div class="nav-actions">
+            <button class="btn-secondary" onclick="history.back()">← Back</button>
+            <button class="btn-primary">Message Seller</button>
+        </div>
+    </div>
+</nav>
+
+<!-- ITEM SECTION -->
+<section style="margin-top: 80px;">
+    <div class="section-container">
+
+        <div class="item-layout">
+
+            <!-- IMAGE -->
+            <div class="item-image glass">
+                <img src="https://via.placeholder.com/600x400" alt="Item Image">
+            </div>
+
+            <!-- DETAILS -->
+            <div>
+
+                <h1 class="item-title">Calculus Textbook (Like New)</h1>
+
+                <div class="item-price">$45</div>
+
+                <p class="item-description">
+                    Barely used first-year calculus textbook. No highlights or markings.
+                    Ideal for UWA students taking MATH1011. Clean, well-kept, and ready for a new owner.
+                </p>
+
+                <div class="item-meta">
+                    <span>📍 UWA Campus</span>
+                    <span>📅 Posted 2 days ago</span>
+                    <span>📦 Pickup Only</span>
+                </div>
+
+                <div class="item-actions">
+                    <button class="btn-primary btn-large">💬 Message Seller</button>
+                    <button class="btn-secondary btn-large">♡ Save</button>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<!-- RELATED ITEMS -->
+<section class="features">
+    <div class="section-container">
+
+        <h2 class="section-title">Related Listings</h2>
+        <p class="section-subtitle">More items you might be interested in</p>
+
+        <div class="features-grid">
+
+            <div class="feature-card">
+                <div class="feature-icon">📘</div>
+                <h3 class="feature-title">Linear Algebra Book</h3>
+                <p class="feature-description">$30 • Good condition</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📗</div>
+                <h3 class="feature-title">Statistics Notes</h3>
+                <p class="feature-description">$15 • PDF + Print</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📙</div>
+                <h3 class="feature-title">Physics Workbook</h3>
+                <p class="feature-description">$25 • Slight wear</p>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="footer-container">
+        <div class="footer-brand">
+            <span class="logo-icon">📚</span>
+            UWA Swap-Meet
+        </div>
+
+        <div class="footer-links">
+            <a href="#" class="footer-link">Browse</a>
+            <a href="#" class="footer-link">Sell</a>
+            <a href="#" class="footer-link">About</a>
+        </div>
+
+        <div class="footer-copy">
+            © 2026 UWA Swap-Meet. Built for students.
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>
