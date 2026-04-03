@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UWA Swap-Meet | Authentication</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="auth-page">
+    <!-- Background: UWA Campus (Winthrop Hall) -->
+    <div class="auth-background" style="background-image: url('images/winthrop-hall.jpg');"></div>
+    <div class="auth-background-overlay"></div>
+
+    <!-- Main Auth Container -->
+    <main>
+        <!-- Brand Identity Header -->
+        <div class="auth-brand">
+            <div class="auth-brand-icon">
+                <span class="material-symbols-outlined" style="font-size: 2.25rem; color: var(--color-primary);">school</span>
+            </div>
+            <h1 class="auth-brand-title">UWA Market Place</h1>
+        </div>
+
+        <!-- Auth Card -->
+        <div class="auth-card">
+            <!-- Tab Navigation -->
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="tab-login" data-tab="login">Login</button>
+                <button class="auth-tab" id="tab-signup" data-tab="signup">Sign Up</button>
+            </div>
+
+            <!-- Form Content -->
+            <div class="auth-form-container">
+                <!-- Login Form -->
+                <form class="auth-form active" id="form-login">
+                    <div class="form-group">
+                        <label class="form-label" for="login-email">University Email</label>
+                        <div class="form-input-wrapper">
+                            <input
+                                class="form-input"
+                                id="login-email"
+                                type="email"
+                                placeholder="student_id@student.uwa.edu.au"
+                                required
+                            >
+                            <div class="form-input-accent"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="form-label-row">
+                            <label class="form-label" for="login-password" style="margin-bottom: 0;">Password</label>
+                            <a class="form-link" href="#">Forgot Password?</a>
+                        </div>
+                        <div class="form-input-wrapper">
+                            <input
+                                class="form-input"
+                                id="login-password"
+                                type="password"
+                                placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;"
+                                required
+                            >
+                            <div class="form-input-accent"></div>
+                        </div>
+                    </div>
+
+                    <button class="auth-submit" type="submit">
+                        Login to Exchange
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4.16667 10H15.8333M15.8333 10L10 4.16667M15.8333 10L10 15.8333" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </form>
+
+                <!-- Sign Up Form -->
+                <form class="auth-form" id="form-signup">
+                    <div class="form-group">
+                        <label class="form-label" for="signup-username">Username</label>
+                        <div class="form-input-wrapper">
+                            <input
+                                class="form-input"
+                                id="signup-username"
+                                type="text"
+                                placeholder="Choose a username"
+                                required
+                            >
+                            <div class="form-input-accent"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="signup-email">University Email</label>
+                        <div class="form-input-wrapper">
+                            <input
+                                class="form-input"
+                                id="signup-email"
+                                type="email"
+                                placeholder="student_id@student.uwa.edu.au"
+                                required
+                            >
+                            <div class="form-input-accent"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="signup-password">Password</label>
+                        <div class="form-input-wrapper">
+                            <input
+                                class="form-input"
+                                id="signup-password"
+                                type="password"
+                                placeholder="Create a strong password"
+                                required
+                                minlength="8"
+                            >
+                            <div class="form-input-accent"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="signup-confirm">Confirm Password</label>
+                        <div class="form-input-wrapper">
+                            <input
+                                class="form-input"
+                                id="signup-confirm"
+                                type="password"
+                                placeholder="Re-enter your password"
+                                required
+                                minlength="8"
+                            >
+                            <div class="form-input-accent"></div>
+                        </div>
+                    </div>
+
+                    <button class="auth-submit" type="submit">
+                        Create Account
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4.16667 10H15.8333M15.8333 10L10 4.16667M15.8333 10L10 15.8333" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Footer Help Text -->
+        <p class="auth-footer-text">
+            By continuing, you agree to the UWA Swap-Meet
+            <a href="#">Code of Conduct</a> and
+            <a href="#">Academic Integrity Guidelines</a>.
+        </p>
+    </main>
+
+    <!-- Global Footer -->
+    <footer class="auth-page-footer">
+        <div class="auth-page-footer-brand">
+            <span class="auth-page-footer-brand-name">The University of Western Australia</span>
+            <p class="auth-page-footer-brand-copy">&copy; 2026. All rights reserved.</p>
+        </div>
+        <div class="auth-page-footer-links">
+            <a class="auth-page-footer-link" href="#">Help Center</a>
+            <a class="auth-page-footer-link" href="#">Safety</a>
+            <a class="auth-page-footer-link" href="#">Terms</a>
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>
