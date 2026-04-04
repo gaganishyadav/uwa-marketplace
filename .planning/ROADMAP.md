@@ -35,7 +35,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. User can log in and stay logged in across browser sessions
   3. User can log out from any page
   4. User sessions timeout after inactivity for security
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 01-PLAN.md -- Flask foundation: app factory, User model, forms, test infrastructure
+- [ ] 02-PLAN.md -- Auth routes, templates, static migration, integration tests, human verification
 
 **UI hint**: yes
 
@@ -118,11 +122,11 @@ Decimal phases appear between their surrounding integers in numeric order.
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Flask Foundation & Authentication | 0/0 | Not started | - |
+| 1. Flask Foundation & Authentication | 0/2 | Planning complete | - |
 | 2. Marketplace Core | 0/0 | Not started | - |
 | 3. Search & Discovery | 0/0 | Not started | - |
 | 4. Campus Map Integration | 0/0 | Not started | - |
@@ -132,4 +136,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 ---
 
-*Last updated: 2026-03-25*
+*Last updated: 2026-04-03*
