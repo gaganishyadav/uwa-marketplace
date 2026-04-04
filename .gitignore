@@ -2,3 +2,10 @@
 .claud
 CLAUDE.md
 stitch_remix_of_uwa_swap_meet/
+
+# Flask
+instance/
+*.db
+.env
+__pycache__/
+*.pyc
