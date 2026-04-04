@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
@@ -29,7 +30,7 @@ def create_app(config=None):
     app.config['MAIL_SUPPRESS_SEND'] = os.environ.get('MAIL_SUPPRESS_SEND', 'false').lower() == 'true'
 
     # Session config (per D-13 -- browser session lifetime)
-    app.config['PERMANENT_SESSION_LIFETIME'] = None  # Browser session only
+    app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=5)
 
     # Override config for testing
     if config:
@@ -40,11 +41,9 @@ def create_app(config=None):
     csrf.init_app(app)
     mail.init_app(app)
 
-    # Import routes (will be created in Plan 02)
-    # For now, register a simple index route so the app doesn't 404 on /
-    @app.route('/')
-    def index():
-        return '<h1>UWA Swap-Meet</h1><p>App is running. Routes will be added in Plan 02.</p>'
+    # Import routes
+    from app.routes import init_routes
+    init_routes(app)
 
     # Create database tables
     with app.app_context():

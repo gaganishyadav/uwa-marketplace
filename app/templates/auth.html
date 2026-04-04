@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block body_class %}auth-page{% endblock %}
+
+{% block content %}
+    <!-- Background: UWA Campus (Winthrop Hall) -->
+    <div class="auth-background" style="background-image: url('{{ url_for('static', filename='images/winthrop-hall.jpg') }}');"></div>
+    <div class="auth-background-overlay"></div>
+
+    <!-- Main Auth Container -->
+    <main>
+        <!-- Brand Identity Header -->
+        <div class="auth-brand">
+            <div class="auth-brand-icon">
+                <span class="material-symbols-outlined" style="font-size: 2.25rem; color: var(--color-primary);">school</span>
+            </div>
+            <h1 class="auth-brand-title">UWA Market Place</h1>
+        </div>
+
+        <!-- Auth Card -->
+        <div class="auth-card">
+            <!-- Tab Navigation -->
+            <div class="auth-tabs">
+                <button class="auth-tab {{ 'active' if active_tab == 'login' }}" id="tab-login" data-tab="login">Login</button>
+                <button class="auth-tab {{ 'active' if active_tab == 'signup' }}" id="tab-signup" data-tab="signup">Sign Up</button>
+            </div>
+
+            <!-- Form Content -->
+            <div class="auth-form-container">
+                <!-- Login Form -->
+                <form class="auth-form {{ 'active' if active_tab == 'login' }}" id="form-login" action="{{ url_for('login') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="form-group">
+                        <label class="form-label" for="login-email">University Email</label>
+                        <div class="form-input-wrapper">
+                            <input
+                                class="form-input"
+                                id="login-email"
+                                type="email"
+                                name="email"
+                                placeholder="student_id@student.uwa.edu.au"
+                                required
+                            >
+                            <div class="form-input-accent"></div>
+                        </div>
+                        {% if login_form.email.errors %}
+                        <div class="form-errors">
+                            {% for error in login_form.email.errors %}
+                            <span class="form-error">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <div class="form-label-row">
+                            <label class="form-label" for="login-password" style="margin-bottom: 0;">Password</label>
+                            <a class="form-link" href="{{ url_for('forgot_password') }}">Forgot Password?</a>
+                        </div>
+                        <div class="form-input-wrapper">
+                            <input
+                                class="form-input"
+                                id="login-password"
+                                type="password"
+                                name="password"
+                                placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;"
+                                required
+                            >
+                            <div class="form-input-accent"></div>
+                        </div>
+                        {% if login_form.password.errors %}
+                        <div class="form-errors">
+                            {% for error in login_form.password.errors %}
+                            <span class="form-error">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <button class="auth-submit" type="submit">
+                        Login to Exchange
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4.16667 10H15.8333M15.8333 10L10 4.16667M15.8333 10L10 15.8333" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </form>
+
+                <!-- Sign Up Form -->
+                <form class="auth-form {{ 'active' if active_tab == 'signup' }}" id="form-signup" action="{{ url_for('register') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="form-group">
+                        <label class="form-label" for="signup-display-name">Display Name</label>
+                        <div class="form-input-wrapper">
+                            <input
+                                class="form-input"
+                                id="signup-display-name"
+                                type="text"
+                                name="display_name"
+                                placeholder="Choose a display name"
+                                required
+                            >
+                            <div class="form-input-accent"></div>
+                        </div>
+                        {% if register_form.display_name.errors %}
+                        <div class="form-errors">
+                            {% for error in register_form.display_name.errors %}
+                            <span class="form-error">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="signup-email">University Email</label>
+                        <div class="form-input-wrapper">
+                            <input
+                                class="form-input"
+                                id="signup-email"
+                                type="email"
+                                name="email"
+                                placeholder="student_id@student.uwa.edu.au"
+                                required
+                            >
+                            <div class="form-input-accent"></div>
+                        </div>
+                        {% if register_form.email.errors %}
+                        <div class="form-errors">
+                            {% for error in register_form.email.errors %}
+                            <span class="form-error">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="signup-password">Password</label>
+                        <div class="form-input-wrapper">
+                            <input
+                                class="form-input"
+                                id="signup-password"
+                                type="password"
+                                name="password"
+                                placeholder="Create a strong password"
+                                required
+                                minlength="8"
+                            >
+                            <div class="form-input-accent"></div>
+                        </div>
+                        {% if register_form.password.errors %}
+                        <div class="form-errors">
+                            {% for error in register_form.password.errors %}
+                            <span class="form-error">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="signup-confirm">Confirm Password</label>
+                        <div class="form-input-wrapper">
+                            <input
+                                class="form-input"
+                                id="signup-confirm"
+                                type="password"
+                                name="confirm_password"
+                                placeholder="Re-enter your password"
+                                required
+                                minlength="8"
+                            >
+                            <div class="form-input-accent"></div>
+                        </div>
+                        {% if register_form.confirm_password.errors %}
+                        <div class="form-errors">
+                            {% for error in register_form.confirm_password.errors %}
+                            <span class="form-error">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <button class="auth-submit" type="submit">
+                        Create Account
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4.16667 10H15.8333M15.8333 10L10 4.16667M15.8333 10L10 15.8333" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Footer Help Text -->
+        <p class="auth-footer-text">
+            By continuing, you agree to the UWA Swap-Meet
+            <a href="#">Code of Conduct</a> and
+            <a href="#">Academic Integrity Guidelines</a>.
+        </p>
+    </main>
+
+    <!-- Global Footer -->
+    <footer class="auth-page-footer">
+        <div class="auth-page-footer-brand">
+            <span class="auth-page-footer-brand-name">The University of Western Australia</span>
+            <p class="auth-page-footer-brand-copy">&copy; 2026. All rights reserved.</p>
+        </div>
+        <div class="auth-page-footer-links">
+            <a class="auth-page-footer-link" href="#">Help Center</a>
+            <a class="auth-page-footer-link" href="#">Safety</a>
+            <a class="auth-page-footer-link" href="#">Terms</a>
+        </div>
+    </footer>
+{% endblock %}
+
+{% block scripts %}
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+{% endblock %}
