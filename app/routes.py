@@ -67,18 +67,18 @@ def init_routes(app):
             db.session.commit()
 
             # Send OTP email
-            try:
-                msg = Message(
-                    'Your UWA Swap-Meet Verification Code',
-                    recipients=[user.email],
-                    body=f'Your verification code is: {otp}'
-                )
-                mail.send(msg)
-            except Exception:
-                app.logger.warning('Failed to send OTP email')
-
-            if app.config.get('MAIL_SUPPRESS_SEND'):
-                app.logger.info(f'OTP for {user.email}: {otp}')
+            if not app.config.get('MAIL_SUPPRESS_SEND'):
+                try:
+                    msg = Message(
+                        'Your UWA Swap-Meet Verification Code',
+                        recipients=[user.email],
+                        body=f'Your verification code is: {otp}'
+                    )
+                    mail.send(msg)
+                except Exception:
+                    app.logger.warning('Failed to send OTP email')
+            else:
+                app.logger.warning(f'DEV MODE — OTP for {user.email}: {otp}')
 
             session['user_id'] = user.id
             return redirect(url_for('verify_otp'))
@@ -126,17 +126,18 @@ def init_routes(app):
         if user.can_resend_otp():
             otp = user.generate_otp()
             db.session.commit()
-            try:
-                msg = Message(
-                    'Your UWA Swap-Meet Verification Code',
-                    recipients=[user.email],
-                    body=f'Your verification code is: {otp}'
-                )
-                mail.send(msg)
-            except Exception:
-                app.logger.warning('Failed to send OTP email')
-            if app.config.get('MAIL_SUPPRESS_SEND'):
-                app.logger.info(f'OTP for {user.email}: {otp}')
+            if not current_app.config.get('MAIL_SUPPRESS_SEND'):
+                try:
+                    msg = Message(
+                        'Your UWA Swap-Meet Verification Code',
+                        recipients=[user.email],
+                        body=f'Your verification code is: {otp}'
+                    )
+                    mail.send(msg)
+                except Exception:
+                    app.logger.warning('Failed to send OTP email')
+            else:
+                app.logger.warning(f'DEV MODE — OTP for {user.email}: {otp}')
             flash('A new verification code has been sent.', 'success')
         else:
             flash('Please wait before requesting a new code.', 'error')

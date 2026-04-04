@@ -90,9 +90,9 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01: User registration | Phase 1 | Pending |
-| AUTH-02: Secure login with session management | Phase 1 | Pending |
-| AUTH-04: Logout | Phase 1 | Pending |
+| AUTH-01: User registration | Phase 1 | Complete |
+| AUTH-02: Secure login with session management | Phase 1 | Complete |
+| AUTH-04: Logout | Phase 1 | Complete |
 | MARKET-01: Public gallery | Phase 2 | Pending |
 | MARKET-02: Create listing | Phase 2 | Pending |
 | MARKET-03: Edit own listings | Phase 2 | Pending |
@@ -113,7 +113,7 @@
 | SEC-03: Input validation and sanitization | Phase 6 | Pending |
 | SEC-04: SQL injection prevention | Phase 6 | Pending |
 | SEC-05: Secrets in .env | Phase 6 | Pending |
-| SEC-06: Session security | Phase 6 | Pending |
+| SEC-06: Session security | Phase 6 | Complete |
 | TEST-01: Unit tests for models | Phase 7 | Pending |
 | TEST-02: Unit tests for password hashing | Phase 7 | Pending |
 | TEST-03: Unit tests for route access control | Phase 7 | Pending |
