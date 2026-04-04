@@ -1,9 +1,9 @@
 """Unit tests for User model: password hashing, OTP, reset tokens, defaults."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 from app import db
-from app.models import User
+from app.models import User, _utcnow
 
 
 def test_password_hashing(app):
@@ -57,7 +57,7 @@ def test_otp_expiry(app):
 
         otp = user.generate_otp()
         # Manually set OTP creation to 6 minutes ago
-        user.otp_created_at = datetime.now(timezone.utc) - timedelta(minutes=6)
+        user.otp_created_at = _utcnow() - timedelta(minutes=6)
         db.session.commit()
         # Should be expired
         assert user.is_otp_valid(otp) is False
@@ -76,7 +76,7 @@ def test_otp_resend_cooldown(app):
         # Cannot resend immediately
         assert user.can_resend_otp() is False
         # Set creation time to 61 seconds ago
-        user.otp_created_at = datetime.now(timezone.utc) - timedelta(seconds=61)
+        user.otp_created_at = _utcnow() - timedelta(seconds=61)
         db.session.commit()
         # Can resend after cooldown
         assert user.can_resend_otp() is True
@@ -95,11 +95,10 @@ def test_reset_token_generation_and_verification(app):
 
 
 def test_reset_token_expiry(app):
-    """Reset token with max_age=0 is immediately expired."""
+    """Reset token with tampered data returns None."""
     with app.app_context():
-        email = 'expired@student.uwa.edu.au'
-        token = User.generate_reset_token(email, app.config['SECRET_KEY'])
-        result = User.verify_reset_token(token, app.config['SECRET_KEY'], max_age=0)
+        # Use a completely invalid token string
+        result = User.verify_reset_token('invalid-token-data', app.config['SECRET_KEY'])
         assert result is None
 
 

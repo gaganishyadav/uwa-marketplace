@@ -8,6 +8,11 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
 
 
+def _utcnow():
+    """Return current UTC time as a naive datetime for SQLite compatibility."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     display_name = db.Column(db.String(50), nullable=False)
@@ -18,7 +23,7 @@ class User(db.Model):
     otp_created_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(
         db.DateTime,
-        default=lambda: datetime.now(timezone.utc),
+        default=_utcnow,
         nullable=False,
     )
 
@@ -33,7 +38,7 @@ class User(db.Model):
     def generate_otp(self):
         """Generate a 6-digit cryptographically secure OTP (per D-08)."""
         self.otp_code = str(secrets.randbelow(900000) + 100000)
-        self.otp_created_at = datetime.now(timezone.utc)
+        self.otp_created_at = _utcnow()
         return self.otp_code
 
     def is_otp_valid(self, code):
@@ -43,14 +48,14 @@ class User(db.Model):
         if self.otp_code != code:
             return False
         expiry = self.otp_created_at + timedelta(minutes=5)
-        return datetime.now(timezone.utc) < expiry
+        return _utcnow() < expiry
 
     def can_resend_otp(self):
         """Check if 60-second cooldown has passed since last OTP (per D-08)."""
         if not self.otp_created_at:
             return True
         cooldown = self.otp_created_at + timedelta(seconds=60)
-        return datetime.now(timezone.utc) >= cooldown
+        return _utcnow() >= cooldown
 
     @staticmethod
     def generate_reset_token(email, secret_key):
