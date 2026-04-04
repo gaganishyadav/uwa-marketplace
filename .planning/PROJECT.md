@@ -13,10 +13,10 @@ Enable UWA students to trade goods securely within the campus community — safe
 ### Validated
 
 - ✓ Landing page with navigation, hero section, features, categories, CTA, and footer — existing (Phase 0)
+- ✓ User accounts with secure registration, login, logout, and session persistence — Validated in Phase 1: Flask Foundation & Authentication
 
 ### Active
 
-- [ ] User accounts with secure registration, login, logout, and session persistence
 - [ ] Public marketplace gallery with grid-based view of all active listings
 - [ ] Real-time AJAX search and category filtering (no page reloads)
 - [ ] Listing CRUD operations (create, read, update, delete with ownership)
@@ -79,4 +79,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2025-03-25 after initialization*
+*Last updated: 2026-04-04 after Phase 1 completion*
