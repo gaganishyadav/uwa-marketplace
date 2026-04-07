@@ -94,11 +94,21 @@ def test_reset_token_generation_and_verification(app):
         assert wrong is None
 
 
-def test_reset_token_expiry(app):
-    """Reset token with tampered data returns None."""
+def test_reset_token_invalid_token(app):
+    """Reset token with tampered/invalid data returns None."""
     with app.app_context():
         # Use a completely invalid token string
         result = User.verify_reset_token('invalid-token-data', app.config['SECRET_KEY'])
+        assert result is None
+
+
+def test_reset_token_expiry(app):
+    """Reset token rejected when max_age is exceeded."""
+    with app.app_context():
+        email = 'expiry@student.uwa.edu.au'
+        token = User.generate_reset_token(email, app.config['SECRET_KEY'])
+        # max_age=-1 means any age exceeds the limit (forces expiry)
+        result = User.verify_reset_token(token, app.config['SECRET_KEY'], max_age=-1)
         assert result is None
 
 

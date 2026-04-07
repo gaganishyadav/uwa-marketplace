@@ -121,11 +121,11 @@ def test_unverified_redirect(client, app):
 # ---------------------------------------------------------------------------
 
 def test_logout(client, app):
-    """Logout clears session and redirects to auth page."""
+    """Logout via POST clears session and redirects to auth page."""
     create_verified_user(app)
     login_user(client)
 
-    response = client.get('/logout', follow_redirects=False)
+    response = client.post('/logout', follow_redirects=False)
     assert response.status_code == 302
     assert '/auth' in response.headers['Location']
 
@@ -133,6 +133,15 @@ def test_logout(client, app):
     response = client.get('/', follow_redirects=False)
     assert response.status_code == 302
     assert '/auth' in response.headers['Location']
+
+
+def test_logout_get_not_allowed(client, app):
+    """GET /logout is not allowed (405 Method Not Allowed)."""
+    create_verified_user(app)
+    login_user(client)
+
+    response = client.get('/logout', follow_redirects=False)
+    assert response.status_code == 405
 
 
 # ---------------------------------------------------------------------------
@@ -236,5 +245,111 @@ def test_reset_password_expired_token(client, app):
     """Invalid/expired token redirects to forgot-password with error."""
     response = client.get('/reset-password/invalid-token-string',
                           follow_redirects=False)
+    assert response.status_code == 302
+    assert '/forgot-password' in response.headers['Location']
+
+
+# ---------------------------------------------------------------------------
+# Additional route access / edge case tests
+# ---------------------------------------------------------------------------
+
+def test_dashboard_unauthenticated(client):
+    """GET / without login redirects to /auth."""
+    response = client.get('/', follow_redirects=False)
+    assert response.status_code == 302
+    assert '/auth' in response.headers['Location']
+
+
+def test_dashboard_unverified_redirects(client, app):
+    """Unverified user visiting / is redirected to /verify-otp."""
+    register_user(client)
+    response = client.get('/', follow_redirects=False)
+    assert response.status_code == 302
+    assert '/verify-otp' in response.headers['Location']
+
+
+def test_verify_otp_unauthenticated(client):
+    """GET /verify-otp without login redirects to /auth."""
+    response = client.get('/verify-otp', follow_redirects=False)
+    assert response.status_code == 302
+    assert '/auth' in response.headers['Location']
+
+
+def test_verify_otp_already_verified(client, app):
+    """Verified user visiting /verify-otp is redirected to dashboard."""
+    create_verified_user(app)
+    login_user(client)
+    response = client.get('/verify-otp', follow_redirects=False)
+    assert response.status_code == 302
+    assert response.headers['Location'].endswith('/')
+
+
+def test_stale_session_verify_otp(client, app):
+    """Session with a deleted user's ID redirects to /auth from /verify-otp."""
+    with client.session_transaction() as sess:
+        sess['user_id'] = 99999  # non-existent user
+
+    response = client.get('/verify-otp', follow_redirects=False)
+    assert response.status_code == 302
+    assert '/auth' in response.headers['Location']
+
+
+def test_auth_redirects_verified_user(client, app):
+    """Logged-in verified user visiting /auth is redirected to dashboard."""
+    create_verified_user(app)
+    login_user(client)
+    response = client.get('/auth', follow_redirects=False)
+    assert response.status_code == 302
+    assert response.headers['Location'].endswith('/')
+
+
+def test_register_password_mismatch(client, app):
+    """Passwords that don't match reject registration and show an error."""
+    response = register_user(client, password='Password1', confirm_password='Different1')
+    assert response.status_code == 200
+    assert b'Field must be equal to password' in response.data or b'must match' in response.data or b'Passwords' in response.data
+
+    with app.app_context():
+        assert User.query.count() == 0
+
+
+def test_login_nonexistent_user(client, app):
+    """Login with an email that has no account shows error."""
+    response = client.post('/login', data={
+        'email': 'nobody@student.uwa.edu.au',
+        'password': 'Password1',
+    }, follow_redirects=False)
+    assert response.status_code == 200
+
+
+def test_resend_otp_unauthenticated(client):
+    """POST /resend-otp without login redirects to /auth."""
+    response = client.post('/resend-otp', follow_redirects=False)
+    assert response.status_code == 302
+    assert '/auth' in response.headers['Location']
+
+
+def test_resend_otp_cooldown_blocked(client, app):
+    """Resend OTP immediately after generation is blocked by cooldown."""
+    register_user(client)
+    response = client.post('/resend-otp', follow_redirects=False)
+    assert response.status_code == 302
+    assert '/verify-otp' in response.headers['Location']
+
+
+def test_session_permanent_on_login(client, app):
+    """Session is marked permanent after a successful login."""
+    create_verified_user(app)
+    login_user(client)
+    with client.session_transaction() as sess:
+        assert sess.permanent is True
+
+
+def test_reset_password_invalid_token_post(client, app):
+    """POST to reset-password with invalid token redirects to forgot-password."""
+    response = client.post('/reset-password/bad-token', data={
+        'password': 'NewPassword1',
+        'confirm_password': 'NewPassword1',
+    }, follow_redirects=False)
     assert response.status_code == 302
     assert '/forgot-password' in response.headers['Location']

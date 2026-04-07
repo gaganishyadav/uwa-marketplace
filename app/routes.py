@@ -80,6 +80,7 @@ def init_routes(app):
             else:
                 app.logger.warning(f'DEV MODE — OTP for {user.email}: {otp}')
 
+            session.permanent = True
             session['user_id'] = user.id
             return redirect(url_for('verify_otp'))
 
@@ -94,6 +95,7 @@ def init_routes(app):
         if form.validate_on_submit():
             user = User.query.filter_by(email=form.email.data).first()
             if user and user.check_password(form.password.data):
+                session.permanent = True
                 session['user_id'] = user.id
                 if not user.email_verified:
                     return redirect(url_for('verify_otp'))
@@ -108,6 +110,9 @@ def init_routes(app):
     @login_required
     def verify_otp():
         user = db.session.get(User, session['user_id'])
+        if user is None:
+            session.clear()
+            return redirect(url_for('auth'))
         if user.email_verified:
             return redirect(url_for('index'))
         form = OTPForm()
@@ -123,6 +128,9 @@ def init_routes(app):
     @login_required
     def resend_otp():
         user = db.session.get(User, session['user_id'])
+        if user is None:
+            session.clear()
+            return redirect(url_for('auth'))
         if user.can_resend_otp():
             otp = user.generate_otp()
             db.session.commit()
@@ -181,7 +189,7 @@ def init_routes(app):
             return redirect(url_for('auth'))
         return render_template('reset_password.html', form=form, token=token)
 
-    @app.route('/logout')
+    @app.route('/logout', methods=['POST'])
     @login_required
     def logout():
         session.clear()
