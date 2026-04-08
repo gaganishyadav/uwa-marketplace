@@ -93,11 +93,11 @@
 | AUTH-01: User registration | Phase 1 | Complete |
 | AUTH-02: Secure login with session management | Phase 1 | Complete |
 | AUTH-04: Logout | Phase 1 | Complete |
-| MARKET-01: Public gallery | Phase 2 | Pending |
-| MARKET-02: Create listing | Phase 2 | Pending |
-| MARKET-03: Edit own listings | Phase 2 | Pending |
-| MARKET-04: Delete own listings | Phase 2 | Pending |
-| MARKET-05: Mark item as sold | Phase 2 | Pending |
+| MARKET-01: Public gallery | Phase 2 | Complete |
+| MARKET-02: Create listing | Phase 2 | Complete |
+| MARKET-03: Edit own listings | Phase 2 | Complete |
+| MARKET-04: Delete own listings | Phase 2 | Complete |
+| MARKET-05: Mark item as sold | Phase 2 | Complete |
 | MARKET-06: AJAX search | Phase 3 | Pending |
 | MARKET-07: AJAX price range search | Phase 3 | Pending |
 | MARKET-08: Category filtering | Phase 3 | Pending |
