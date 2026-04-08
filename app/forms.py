@@ -1,7 +1,8 @@
 import re
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField
+from flask_wtf.file import FileField, FileAllowed
+from wtforms import StringField, PasswordField, SelectField, TextAreaField, FloatField
 from wtforms.validators import (
     DataRequired,
     Email,
@@ -101,3 +102,36 @@ class ResetPasswordForm(FlaskForm):
     def validate_confirm_password(self, field):
         if self.password.data != field.data:
             raise ValidationError('Passwords do not match.')
+
+
+CATEGORIES = [('Textbooks', 'Textbooks'), ('Electronics', 'Electronics'),
+              ('Furniture', 'Furniture'), ('Supplies', 'Supplies'),
+              ('Sports', 'Sports'), ('Clothing', 'Clothing')]
+
+CONDITIONS = [('New', 'New'), ('Like New', 'Like New'),
+              ('Good', 'Good'), ('Fair', 'Fair')]
+
+MEETUP_SPOTS = [('Reid Library', 'Reid Library'),
+                ('Barry J. Marshall Library', 'Barry J. Marshall Library'),
+                ('Student Guild', 'Student Guild'),
+                ('Winthrop Hall', 'Winthrop Hall'),
+                ('Oak Lawn', 'Oak Lawn')]
+
+
+class ListingForm(FlaskForm):
+    title = StringField('Title', validators=[
+        DataRequired(), Length(min=5, max=200)])
+    category = SelectField('Category', choices=CATEGORIES, validators=[DataRequired()])
+    condition = SelectField('Condition', choices=CONDITIONS, validators=[DataRequired()])
+    price = FloatField('Price', validators=[DataRequired()])
+    description = TextAreaField('Description', validators=[
+        DataRequired(), Length(min=10, max=2000)])
+    meetup_spot = SelectField('Meetup Spot', choices=MEETUP_SPOTS, validators=[DataRequired()])
+    image = FileField('Photo', validators=[
+        FileAllowed(['jpg', 'jpeg', 'png'], 'JPG or PNG images only!')])
+
+
+class EditProfileForm(FlaskForm):
+    display_name = StringField('Display Name', validators=[
+        DataRequired(), Length(min=2, max=50)])
+    bio = TextAreaField('Bio', validators=[Length(max=500)])
