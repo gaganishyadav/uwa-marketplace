@@ -1,9 +1,27 @@
 {% extends "base.html" %}
+{% from "_listing_card.html" import listing_card %}
 {% block title %}Browse Listings - UWA Swap-Meet{% endblock %}
+{% block body_class %}gallery-page{% endblock %}
 {% block content %}
-<div style="max-width: 1200px; margin: 4rem auto; padding: 2rem;">
-{% for listing in listings %}
-<div>{{ listing.title }} - ${{ listing.price }} - {{ listing.status }}</div>
-{% endfor %}
-</div>
+<section class="gallery-page">
+    <div class="gallery-header">
+        <h1 class="gallery-title">Browse Listings</h1>
+        <p class="gallery-subtitle">Find textbooks, furniture, electronics and more from fellow UWA students</p>
+    </div>
+    <div class="gallery-grid">
+        {% if listings %}
+            {% for listing in listings %}
+                {{ listing_card(listing, show_actions=(user is not none and listing.user_id == user.id), current_user_id=(user.id if user else none)) }}
+            {% endfor %}
+        {% else %}
+            <div class="ads-empty">
+                <div class="ads-empty-icon">
+                    <span class="material-symbols-outlined" style="font-size:3rem;opacity:0.4;">storefront</span>
+                </div>
+                <h3 class="ads-empty-title">No listings yet</h3>
+                <p class="ads-empty-desc">Be the first to post something on UWA Swap-Meet!</p>
+            </div>
+        {% endif %}
+    </div>
+</section>
 {% endblock %}
