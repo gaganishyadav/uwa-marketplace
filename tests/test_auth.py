@@ -130,7 +130,7 @@ def test_logout(client, app):
     assert '/auth' in response.headers['Location']
 
     # Subsequent access to protected route redirects to /auth
-    response = client.get('/', follow_redirects=False)
+    response = client.get('/dashboard', follow_redirects=False)
     assert response.status_code == 302
     assert '/auth' in response.headers['Location']
 
@@ -254,16 +254,16 @@ def test_reset_password_expired_token(client, app):
 # ---------------------------------------------------------------------------
 
 def test_dashboard_unauthenticated(client):
-    """GET / without login redirects to /auth."""
-    response = client.get('/', follow_redirects=False)
+    """GET /dashboard without login redirects to /auth."""
+    response = client.get('/dashboard', follow_redirects=False)
     assert response.status_code == 302
     assert '/auth' in response.headers['Location']
 
 
 def test_dashboard_unverified_redirects(client, app):
-    """Unverified user visiting / is redirected to /verify-otp."""
+    """Unverified user visiting /dashboard is redirected to /verify-otp."""
     register_user(client)
-    response = client.get('/', follow_redirects=False)
+    response = client.get('/dashboard', follow_redirects=False)
     assert response.status_code == 302
     assert '/verify-otp' in response.headers['Location']
 
