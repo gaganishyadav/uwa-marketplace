@@ -16,7 +16,7 @@ This roadmap delivers a hyper-local student marketplace for UWA, progressing fro
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Flask Foundation & Authentication** - Project setup, user registration, login, logout
+- [x] **Phase 1: Flask Foundation & Authentication** - Project setup, user registration, login, logout
 - [ ] **Phase 2: Marketplace Core** - Listing CRUD, public gallery, category management
 - [ ] **Phase 3: Search & Discovery** - AJAX search, filtering, category UI
 - [ ] **Phase 4: Campus Map Integration** - Leaflet.js integration with meetup spot selection
@@ -35,7 +35,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. User can log in and stay logged in across browser sessions
   3. User can log out from any page
   4. User sessions timeout after inactivity for security
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [x] 01-PLAN.md -- Flask foundation: app factory, User model, forms, test infrastructure
+- [x] 02-PLAN.md -- Auth routes, templates, static migration, integration tests, human verification
 
 **UI hint**: yes
 
@@ -118,11 +122,11 @@ Decimal phases appear between their surrounding integers in numeric order.
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Flask Foundation & Authentication | 1/? | In progress | - |
+| 1. Flask Foundation & Authentication | 2/2 | Complete | 2026-04-04 |
 | 2. Marketplace Core | 0/0 | Not started | - |
 | 3. Search & Discovery | 0/0 | Not started | - |
 | 4. Campus Map Integration | 0/0 | Not started | - |

@@ -9,11 +9,7 @@ from app import db
 
 
 def _utcnow():
-    """Return current UTC time as a naive datetime.
-
-    SQLite stores datetimes without timezone info. To keep comparisons
-    consistent we store naive UTC datetimes and compare against naive UTC.
-    """
+    """Return current UTC time as a naive datetime for SQLite compatibility."""
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
