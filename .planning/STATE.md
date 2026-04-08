@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-04-08T11:27:22.106Z"
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-04-08T11:38:13.581Z"
 last_activity: 2026-04-08
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 5
-  completed_plans: 2
+  completed_plans: 3
   percent: 14
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-03-25)
 ## Current Position
 
 Phase: 02 (marketplace-core) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-04-08
 
@@ -55,6 +55,7 @@ Progress: [██░░░░░░░░] 14%
 | Phase 01-flask-foundation-authentication P01 | 8min | 2 tasks | 8 files |
 | Phase 01 P02 | 25min | 3 tasks | 20 files |
 | Phase 02 P01 | 8min | 2 tasks | 10 files |
+| Phase 02 P02 | 5min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,8 @@ Recent decisions affecting current work:
 - [Phase 01]: PERMANENT_SESSION_LIFETIME set to timedelta(hours=5) -- Flask 3.x does not accept None
 - [Phase 02]: Gallery at / shows all listings (active first, sold after) per D-20; dashboard moved to /dashboard
 - [Phase 02]: Image uploads use UUID filenames with extension validation, stored in app/static/uploads/
+- [Phase 02]: openModal/openEditModal exposed on window for inline onclick in Jinja2 macro
+- [Phase 02]: Card action buttons each in own form with CSRF token for POST; Edit uses modal, Sold/Delete use real form submit
 
 ### Pending Todos
 
@@ -86,6 +89,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-08T11:27:22.102Z
-Stopped at: Completed 02-01-PLAN.md
+Last session: 2026-04-08T11:38:13.578Z
+Stopped at: Completed 02-02-PLAN.md
 Resume file: None

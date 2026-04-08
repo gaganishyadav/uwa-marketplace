@@ -1,0 +1,34 @@
+{# Shared context-aware navigation bar (D-16, D-18) #}
+<nav class="nav">
+    <div class="nav-container">
+        <a href="{{ url_for('gallery') }}" class="nav-brand">
+            <span class="logo-text">UWA Swap-Meet</span>
+        </a>
+        {% if session.get('user_id') %}
+        <div class="nav-user">
+            <a href="{{ url_for('gallery') }}" class="nav-link">Browse</a>
+            <button class="btn-primary btn-post-nav" id="nav-post-btn">+ Post Ad</button>
+            <div class="nav-avatar-wrapper">
+                <button class="nav-avatar" id="nav-avatar-btn" aria-expanded="false" aria-haspopup="true">
+                    {% if user %}{{ user.display_name[0] | upper }}{% else %}U{% endif %}
+                </button>
+                <div class="nav-dropdown" id="nav-dropdown">
+                    <a href="{{ url_for('dashboard') }}" class="nav-dropdown-item">My Dashboard</a>
+                    <a href="{{ url_for('gallery') }}" class="nav-dropdown-item">Browse Listings</a>
+                    <div class="nav-dropdown-divider"></div>
+                    <form action="{{ url_for('logout') }}" method="post" style="display:inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="nav-dropdown-item nav-dropdown-item--danger">Log Out</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="nav-actions">
+            <a href="{{ url_for('gallery') }}" class="nav-link">Browse</a>
+            <a href="{{ url_for('auth') }}" class="btn-secondary">Log In</a>
+            <a href="{{ url_for('auth', tab='signup') }}" class="btn-primary">Sign Up</a>
+        </div>
+        {% endif %}
+    </div>
+</nav>
