@@ -45,6 +45,16 @@ def create_app(config=None):
     csrf.init_app(app)
     mail.init_app(app)
 
+    # Make current user available in all templates
+    @app.context_processor
+    def inject_user():
+        from app.models import User
+        from flask import session as flask_session
+        user = None
+        if flask_session.get('user_id'):
+            user = db.session.get(User, flask_session['user_id'])
+        return {'user': user}
+
     # Import routes
     from app.routes import init_routes
     init_routes(app)
