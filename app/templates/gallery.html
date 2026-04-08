@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Browse Listings - UWA Swap-Meet{% endblock %}
+{% block content %}
+<div style="max-width: 1200px; margin: 4rem auto; padding: 2rem;">
+{% for listing in listings %}
+<div>{{ listing.title }} - ${{ listing.price }} - {{ listing.status }}</div>
+{% endfor %}
+</div>
+{% endblock %}

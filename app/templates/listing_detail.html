@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}{{ listing.title }} - UWA Swap-Meet{% endblock %}
+{% block content %}
+<div style="max-width: 800px; margin: 4rem auto; padding: 2rem;">
+<h1>{{ listing.title }}</h1>
+<p>{{ listing.price }}</p>
+<p>{{ listing.description }}</p>
+<p>Status: {{ listing.status }}</p>
+</div>
+{% endblock %}
