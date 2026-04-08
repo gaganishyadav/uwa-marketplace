@@ -32,6 +32,10 @@ def create_app(config=None):
     # Session config (per D-13 -- browser session lifetime)
     app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=5)
 
+    # Upload config (per D-06)
+    app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB
+    app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'uploads')
+
     # Override config for testing
     if config:
         app.config.update(config)
