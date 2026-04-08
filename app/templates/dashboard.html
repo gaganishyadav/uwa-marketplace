@@ -1,11 +1,156 @@
 {% extends "base.html" %}
-{% block title %}Dashboard - UWA Swap-Meet{% endblock %}
+{% from "_listing_card.html" import listing_card %}
+{% block title %}My Dashboard - UWA Swap-Meet{% endblock %}
+{% block body_class %}dashboard-page{% endblock %}
 {% block content %}
-<div style="max-width: 1200px; margin: 4rem auto; padding: 2rem; text-align: center;">
-<h1>Welcome, {{ user.display_name }}!</h1>
-<p>{{ active_count }} active, {{ sold_count }} sold</p>
-{% for listing in listings %}
-<div>{{ listing.title }} - ${{ listing.price }}</div>
-{% endfor %}
+<section class="dashboard">
+    {# ---- Profile Header (D-01) ---- #}
+    <div class="profile-header">
+        <div class="profile-header-container">
+            <div class="profile-identity">
+                <div class="profile-avatar-lg">
+                    {{ user.display_name[0] | upper }}
+                </div>
+                <div class="profile-info">
+                    <h1 class="profile-name">{{ user.display_name }}</h1>
+                    <p class="profile-email">{{ user.email }}</p>
+                    {% if user.bio %}
+                    <p class="profile-bio">{{ user.bio }}</p>
+                    {% endif %}
+                    <div class="profile-actions">
+                        <button class="btn-secondary" id="btn-edit-profile">Edit Profile</button>
+                    </div>
+                </div>
+            </div>
+            <div class="profile-stats">
+                <div class="profile-stat-card">
+                    <span class="material-symbols-outlined profile-stat-icon">sell</span>
+                    <div>
+                        <div class="profile-stat-number">{{ active_count }}</div>
+                        <div class="profile-stat-label">Active</div>
+                    </div>
+                </div>
+                <div class="profile-stat-card">
+                    <span class="material-symbols-outlined profile-stat-icon">check_circle</span>
+                    <div>
+                        <div class="profile-stat-number">{{ sold_count }}</div>
+                        <div class="profile-stat-label">Sold</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ---- My Listings (D-01) ---- #}
+    <div class="my-ads">
+        <div class="my-ads-container">
+            <div class="my-ads-header">
+                <div>
+                    <h2 class="my-ads-title">My Listings</h2>
+                    <p class="my-ads-subtitle">Manage your marketplace listings</p>
+                </div>
+                <button class="btn-primary" id="btn-post-ad">+ Post Ad</button>
+            </div>
+            <div class="ads-grid" id="ads-grid">
+                {% if listings %}
+                    {% for listing in listings %}
+                        {{ listing_card(listing, show_actions=true, current_user_id=user.id) }}
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+{# ---- Post / Edit Ad Modal (D-04, D-07) ---- #}
+<div class="modal-overlay" id="modal-post-ad">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 class="modal-title">Post New Ad</h2>
+            <button class="modal-close" aria-label="Close">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <form id="form-post-ad" action="{{ url_for('create_listing') }}" method="post" enctype="multipart/form-data">
+            {{ listing_form.hidden_tag() }}
+            <input type="hidden" id="edit-listing-id" name="edit_listing_id" value="">
+
+            <div class="form-group">
+                {{ listing_form.title.label(class="form-label") }}
+                {{ listing_form.title(class="form-input", id="ad-title", placeholder="What are you selling?") }}
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    {{ listing_form.category.label(class="form-label") }}
+                    {{ listing_form.category(class="form-input form-select", id="ad-category") }}
+                </div>
+                <div class="form-group">
+                    {{ listing_form.condition.label(class="form-label") }}
+                    {{ listing_form.condition(class="form-input form-select", id="ad-condition") }}
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    {{ listing_form.price.label(class="form-label") }}
+                    {{ listing_form.price(class="form-input", id="ad-price", placeholder="0.00") }}
+                </div>
+                <div class="form-group">
+                    {{ listing_form.meetup_spot.label(class="form-label") }}
+                    {{ listing_form.meetup_spot(class="form-input form-select", id="ad-location") }}
+                </div>
+            </div>
+
+            <div class="form-group">
+                {{ listing_form.description.label(class="form-label") }}
+                {{ listing_form.description(class="form-input form-textarea", id="ad-description", rows=4, placeholder="Describe your item...") }}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Photo</label>
+                <div class="form-upload" id="form-upload-zone">
+                    <div class="form-upload-icon">
+                        <span class="material-symbols-outlined">cloud_upload</span>
+                    </div>
+                    <p class="form-upload-text">Click to upload or drag and drop</p>
+                    <p class="form-upload-hint">JPG, PNG up to 5MB</p>
+                    {{ listing_form.image(class="form-upload-input", id="ad-image") }}
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary btn-large" style="width:100%;margin-top:var(--space-md);">
+                Post Listing
+            </button>
+        </form>
+    </div>
+</div>
+
+{# ---- Edit Profile Modal (D-22) ---- #}
+<div class="modal-overlay" id="modal-edit-profile">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 class="modal-title">Edit Profile</h2>
+            <button class="modal-close" aria-label="Close">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <form id="form-edit-profile" action="{{ url_for('edit_profile') }}" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group">
+                <label class="form-label" for="profile-name-input">Display Name</label>
+                <input type="text" class="form-input" id="profile-name-input" name="display_name"
+                       value="{{ user.display_name }}" required minlength="2" maxlength="50">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="profile-bio-input">Bio</label>
+                <textarea class="form-input form-textarea" id="profile-bio-input" name="bio"
+                          rows="3" maxlength="500">{{ user.bio or '' }}</textarea>
+            </div>
+            <button type="submit" class="btn-primary btn-large" style="width:100%;margin-top:var(--space-md);">
+                Save Changes
+            </button>
+        </form>
+    </div>
 </div>
 {% endblock %}
