@@ -26,6 +26,7 @@
         {% else %}
         <div class="nav-actions">
             <a href="{{ url_for('gallery') }}" class="nav-link">Browse</a>
+            <a href="{{ url_for('auth') }}" class="btn-primary btn-post-nav">+ Post Ad</a>
             <a href="{{ url_for('auth') }}" class="btn-secondary">Log In</a>
             <a href="{{ url_for('auth', tab='signup') }}" class="btn-primary">Sign Up</a>
         </div>

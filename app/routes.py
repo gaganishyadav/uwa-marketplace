@@ -75,8 +75,10 @@ def init_routes(app):
             Listing.created_at.desc()).all()
         sold_listings = Listing.query.filter_by(status='sold').order_by(
             Listing.created_at.desc()).all()
+        listing_form = ListingForm()
         return render_template('gallery.html',
-                               listings=active_listings + sold_listings)
+                               listings=active_listings + sold_listings,
+                               listing_form=listing_form)
 
     @app.route('/listing/<int:listing_id>')
     def listing_detail(listing_id):
@@ -125,7 +127,7 @@ def init_routes(app):
             flash('Listing created successfully!', 'success')
         else:
             flash('Please fix the errors in the form.', 'error')
-        return redirect(url_for('dashboard'))
+        return redirect(request.referrer or url_for('dashboard'))
 
     @app.route('/edit-listing/<int:listing_id>', methods=['POST'])
     @email_verified_required

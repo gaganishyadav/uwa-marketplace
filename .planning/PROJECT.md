@@ -17,14 +17,17 @@ Enable UWA students to trade goods securely within the campus community — safe
 
 ### Active
 
-- [ ] Public marketplace gallery with grid-based view of all active listings
 - [ ] Real-time AJAX search and category filtering (no page reloads)
-- [ ] Listing CRUD operations (create, read, update, delete with ownership)
 - [ ] Interactive Leaflet.js map of UWA campus with meetup spot selection
 - [ ] Secure messaging between buyers and sellers
-- [ ] Salted password hashing and CSRF protection
-- [ ] Unit tests (5+) for models, password hashing, and route access control
 - [ ] Selenium tests (5+) for user journeys including login, posting, and AJAX search
+
+### Validated
+
+- ✓ Public marketplace gallery with grid-based view of all active listings — Validated in Phase 2: Marketplace Core
+- ✓ Listing CRUD operations (create, read, update, delete with ownership) — Validated in Phase 2: Marketplace Core
+- ✓ Salted password hashing and CSRF protection — Validated in Phase 1: Flask Foundation & Authentication
+- ✓ Unit tests (5+) for models, password hashing, and route access control — Validated in Phase 2: Marketplace Core (48 total tests passing)
 
 ### Out of Scope
 
@@ -79,4 +82,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-04 after Phase 1 completion*
+*Last updated: 2026-04-08 after Phase 2 completion*

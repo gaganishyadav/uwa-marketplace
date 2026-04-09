@@ -2,10 +2,12 @@ import os
 from datetime import timedelta
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
 from flask_mail import Mail
 
 db = SQLAlchemy()
+migrate = Migrate()
 csrf = CSRFProtect()
 mail = Mail()
 
@@ -42,6 +44,7 @@ def create_app(config=None):
 
     # Initialize extensions
     db.init_app(app)
+    migrate.init_app(app, db)
     csrf.init_app(app)
     mail.init_app(app)
 
@@ -58,10 +61,5 @@ def create_app(config=None):
     # Import routes
     from app.routes import init_routes
     init_routes(app)
-
-    # Create database tables
-    with app.app_context():
-        from app import models  # noqa: F401
-        db.create_all()
 
     return app
