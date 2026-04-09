@@ -6,7 +6,9 @@ from wtforms import StringField, PasswordField, SelectField, TextAreaField, Floa
 from wtforms.validators import (
     DataRequired,
     Email,
+    InputRequired,
     Length,
+    NumberRange,
     Regexp,
     ValidationError,
 )
@@ -123,7 +125,7 @@ class ListingForm(FlaskForm):
         DataRequired(), Length(min=5, max=200)])
     category = SelectField('Category', choices=CATEGORIES, validators=[DataRequired()])
     condition = SelectField('Condition', choices=CONDITIONS, validators=[DataRequired()])
-    price = FloatField('Price', validators=[DataRequired()])
+    price = FloatField('Price', validators=[InputRequired(), NumberRange(min=0, message='Price must be a non-negative number.')])
     description = TextAreaField('Description', validators=[
         DataRequired(), Length(min=10, max=2000)])
     meetup_spot = SelectField('Meetup Spot', choices=MEETUP_SPOTS, validators=[DataRequired()])
