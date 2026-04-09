@@ -13,25 +13,33 @@ pip install -r requirements.txt
 ### 2. Set up the database
 
 ```bash
-flask db upgrade
+flask --app run.py db upgrade
 ```
 
 This creates the SQLite database with the correct schema.
 
 ### 3. Run the application
 
+For local development, the simplest approach is:
+
 ```bash
-flask run
+python run.py
 ```
 
 Open http://127.0.0.1:5000 in your browser.
+
+Alternatively, you can use the Flask CLI:
+
+```bash
+flask --app run.py run
+```
 
 ### Pulling new changes?
 
 If models changed after a `git pull`, apply the new migrations:
 
 ```bash
-flask db upgrade
+flask --app run.py db upgrade
 ```
 
 ### Running tests
