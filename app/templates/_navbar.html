@@ -1,0 +1,98 @@
+<nav class="nav" id="main-navbar">
+  <div class="nav-container">
+    <!-- Brand -->
+    <a href="{{ url_for('gallery') }}" class="nav-brand">
+      <span class="material-symbols-outlined logo-icon">storefront</span>
+      UWA Swap-Meet
+    </a>
+
+    <!-- Desktop Navigation Links -->
+    <div class="nav-links" id="nav-links">
+      <a href="{{ url_for('gallery') }}"
+         class="nav-link {% if active_page == 'browse' %}active{% endif %}">
+        Browse
+      </a>
+      {% if current_user %}
+      <a href="{{ url_for('dashboard') }}"
+         class="nav-link {% if active_page == 'dashboard' %}active{% endif %}">
+        My Listings
+      </a>
+      {% endif %}
+    </div>
+
+    <!-- Actions -->
+    <div class="nav-actions">
+      {% if current_user %}
+      <!-- Post Ad button (desktop) -->
+      <button class="btn-primary btn-post-nav" id="nav-post-btn">+ Post Ad</button>
+
+      <!-- User dropdown menu -->
+      <div class="nav-user-menu" id="user-menu">
+        <button class="nav-user-btn" id="user-menu-btn" type="button" aria-expanded="false">
+          <span class="nav-user-avatar">{{ current_user.display_name[0] | upper }}</span>
+          <span class="nav-user-name">{{ current_user.display_name }}</span>
+          <span class="material-symbols-outlined nav-chevron">expand_more</span>
+        </button>
+        <div class="nav-dropdown" id="user-dropdown">
+          <a href="{{ url_for('dashboard') }}" class="nav-dropdown-item">
+            <span class="material-symbols-outlined">dashboard</span>
+            My Dashboard
+          </a>
+          <div class="nav-dropdown-divider"></div>
+          <form action="{{ url_for('logout') }}" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="nav-dropdown-item nav-dropdown-logout">
+              <span class="material-symbols-outlined">logout</span>
+              Logout
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Mobile hamburger button -->
+      <button class="nav-hamburger" id="nav-hamburger" type="button" aria-label="Open menu">
+        <span class="material-symbols-outlined" id="hamburger-icon">menu</span>
+      </button>
+
+      {% else %}
+      <!-- Not logged in: show auth buttons -->
+      <a href="{{ url_for('auth') }}" class="btn-secondary">Log In</a>
+      <a href="{{ url_for('auth', tab='signup') }}" class="btn-primary">Sign Up</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Mobile slide-down menu -->
+  <div class="nav-mobile-menu" id="nav-mobile-menu">
+    <a href="{{ url_for('gallery') }}"
+       class="nav-mobile-link {% if active_page == 'browse' %}active{% endif %}">
+      <span class="material-symbols-outlined">search</span>
+      Browse
+    </a>
+    {% if current_user %}
+    <a href="{{ url_for('dashboard') }}"
+       class="nav-mobile-link {% if active_page == 'dashboard' %}active{% endif %}">
+      <span class="material-symbols-outlined">dashboard</span>
+      My Listings
+    </a>
+    <div class="nav-mobile-divider"></div>
+    <form action="{{ url_for('logout') }}" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="nav-mobile-link nav-mobile-logout">
+        <span class="material-symbols-outlined">logout</span>
+        Logout
+      </button>
+    </form>
+    {% else %}
+    <div class="nav-mobile-divider"></div>
+    <a href="{{ url_for('auth') }}" class="nav-mobile-link">
+      <span class="material-symbols-outlined">login</span>
+      Log In
+    </a>
+    <a href="{{ url_for('auth', tab='signup') }}" class="nav-mobile-link">
+      <span class="material-symbols-outlined">person_add</span>
+      Sign Up
+    </a>
+    {% endif %}
+  </div>
+</nav>

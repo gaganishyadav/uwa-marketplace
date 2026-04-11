@@ -40,6 +40,15 @@ def email_verified_required(f):
 def init_routes(app):
     """Register all application routes directly on the app (no blueprints, per D-01)."""
 
+    @app.context_processor
+    def inject_current_user():
+        """Make current_user available in all templates for navbar rendering."""
+        if 'user_id' in session:
+            user = db.session.get(User, session['user_id'])
+            if user and user.email_verified:
+                return {'current_user': user}
+        return {'current_user': None}
+
     # ------------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------------
@@ -78,7 +87,8 @@ def init_routes(app):
         listing_form = ListingForm()
         return render_template('gallery.html',
                                listings=active_listings + sold_listings,
-                               listing_form=listing_form)
+                               listing_form=listing_form,
+                               active_page='browse')
 
     @app.route('/listing/<int:listing_id>')
     def listing_detail(listing_id):
@@ -102,7 +112,8 @@ def init_routes(app):
                                listings=my_listings,
                                active_count=active_count,
                                sold_count=sold_count,
-                               listing_form=listing_form)
+                               listing_form=listing_form,
+                               active_page='dashboard')
 
     @app.route('/create-listing', methods=['POST'])
     @email_verified_required
