@@ -191,8 +191,6 @@ def test_create_listing_with_image(verified_client, app):
         # Verify file exists on disk
         upload_dir = app.config['UPLOAD_FOLDER']
         assert os.path.exists(os.path.join(upload_dir, listing.image_path))
-        # Clean up
-        os.remove(os.path.join(upload_dir, listing.image_path))
 
 
 def test_reject_oversized_upload(verified_client, app):
