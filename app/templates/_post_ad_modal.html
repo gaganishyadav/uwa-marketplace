@@ -1,0 +1,63 @@
+{# Reusable Post/Edit Ad Modal — requires listing_form variable #}
+<div class="modal-overlay" id="modal-post-ad">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 class="modal-title">Post New Ad</h2>
+            <button class="modal-close" aria-label="Close">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <form id="form-post-ad" action="{{ url_for('create_listing') }}" method="post" enctype="multipart/form-data">
+            {{ listing_form.hidden_tag() }}
+            <input type="hidden" id="edit-listing-id" name="edit_listing_id" value="">
+
+            <div class="form-group">
+                {{ listing_form.title.label(class="form-label") }}
+                {{ listing_form.title(class="form-input", id="ad-title", placeholder="What are you selling?") }}
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    {{ listing_form.category.label(class="form-label") }}
+                    {{ listing_form.category(class="form-input form-select", id="ad-category") }}
+                </div>
+                <div class="form-group">
+                    {{ listing_form.condition.label(class="form-label") }}
+                    {{ listing_form.condition(class="form-input form-select", id="ad-condition") }}
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    {{ listing_form.price.label(class="form-label") }}
+                    {{ listing_form.price(class="form-input", id="ad-price", placeholder="0.00") }}
+                </div>
+                <div class="form-group">
+                    {{ listing_form.meetup_spot.label(class="form-label") }}
+                    {{ listing_form.meetup_spot(class="form-input form-select", id="ad-location") }}
+                </div>
+            </div>
+
+            <div class="form-group">
+                {{ listing_form.description.label(class="form-label") }}
+                {{ listing_form.description(class="form-input form-textarea", id="ad-description", rows=4, placeholder="Describe your item...") }}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Photo</label>
+                <div class="form-upload" id="form-upload-zone">
+                    <div class="form-upload-icon">
+                        <span class="material-symbols-outlined">cloud_upload</span>
+                    </div>
+                    <p class="form-upload-text">Click to upload or drag and drop</p>
+                    <p class="form-upload-hint">JPG, PNG up to 5MB</p>
+                    {{ listing_form.image(class="form-upload-input", id="ad-image") }}
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary btn-large" style="width:100%;margin-top:var(--space-md);">
+                Post Listing
+            </button>
+        </form>
+    </div>
+</div>

@@ -1,9 +1,17 @@
+import os
+import uuid
 from functools import wraps
-from flask import redirect, url_for, session, render_template, flash, request, current_app
+
+from flask import abort, redirect, url_for, session, render_template, flash, request, current_app
 from flask_mail import Message
+from werkzeug.utils import secure_filename
+
 from app import db, mail
-from app.models import User
-from app.forms import RegistrationForm, LoginForm, OTPForm, ForgotPasswordForm, ResetPasswordForm
+from app.models import User, Listing
+from app.forms import (
+    RegistrationForm, LoginForm, OTPForm, ForgotPasswordForm, ResetPasswordForm,
+    ListingForm, EditProfileForm,
+)
 
 
 def login_required(f):
@@ -32,18 +40,169 @@ def email_verified_required(f):
 def init_routes(app):
     """Register all application routes directly on the app (no blueprints, per D-01)."""
 
+    # ------------------------------------------------------------------
+    # Helpers
+    # ------------------------------------------------------------------
+
+    def save_upload(file_storage, upload_folder):
+        """Save uploaded file with UUID name. Returns filename or None."""
+        if not file_storage or not file_storage.filename:
+            return None
+        original = secure_filename(file_storage.filename)
+        ext = os.path.splitext(original)[1].lower()
+        if ext.lstrip('.') not in {'jpg', 'jpeg', 'png'}:
+            return None
+        filename = f"{uuid.uuid4().hex}{ext}"
+        os.makedirs(upload_folder, exist_ok=True)
+        file_storage.save(os.path.join(upload_folder, filename))
+        return filename
+
+    def get_owned_listing_or_403(listing_id):
+        """Get listing by ID, abort 403 if not owned by current user."""
+        listing = db.session.get(Listing, listing_id)
+        if not listing or listing.user_id != session.get('user_id'):
+            abort(403)
+        return listing
+
+    # ------------------------------------------------------------------
+    # Marketplace routes
+    # ------------------------------------------------------------------
+
     @app.route('/')
+    def gallery():
+        """Public gallery - shows all listings, active first, then sold (per D-20)."""
+        active_listings = Listing.query.filter_by(status='active').order_by(
+            Listing.created_at.desc()).all()
+        sold_listings = Listing.query.filter_by(status='sold').order_by(
+            Listing.created_at.desc()).all()
+        listing_form = ListingForm()
+        return render_template('gallery.html',
+                               listings=active_listings + sold_listings,
+                               listing_form=listing_form)
+
+    @app.route('/listing/<int:listing_id>')
+    def listing_detail(listing_id):
+        listing = db.session.get(Listing, listing_id)
+        if not listing:
+            abort(404)
+        user = db.session.get(User, session['user_id']) if 'user_id' in session else None
+        return render_template('listing_detail.html', listing=listing, current_user=user)
+
+    @app.route('/dashboard')
     @email_verified_required
-    def index():
+    def dashboard():
         user = db.session.get(User, session['user_id'])
-        return render_template('dashboard.html', user=user)
+        my_listings = Listing.query.filter_by(user_id=user.id).order_by(
+            Listing.created_at.desc()).all()
+        active_count = sum(1 for l in my_listings if l.status == 'active')
+        sold_count = sum(1 for l in my_listings if l.status == 'sold')
+        listing_form = ListingForm()
+        return render_template('dashboard.html',
+                               user=user,
+                               listings=my_listings,
+                               active_count=active_count,
+                               sold_count=sold_count,
+                               listing_form=listing_form)
+
+    @app.route('/create-listing', methods=['POST'])
+    @email_verified_required
+    def create_listing():
+        form = ListingForm()
+        if form.validate_on_submit():
+            filename = None
+            if form.image.data:
+                filename = save_upload(form.image.data, app.config['UPLOAD_FOLDER'])
+            listing = Listing(
+                user_id=session['user_id'],
+                title=form.title.data,
+                description=form.description.data,
+                price=form.price.data,
+                category=form.category.data,
+                condition=form.condition.data,
+                meetup_spot=form.meetup_spot.data,
+                image_path=filename,
+            )
+            db.session.add(listing)
+            db.session.commit()
+            flash('Listing created successfully!', 'success')
+        else:
+            flash('Please fix the errors in the form.', 'error')
+        return redirect(request.referrer or url_for('dashboard'))
+
+    @app.route('/edit-listing/<int:listing_id>', methods=['POST'])
+    @email_verified_required
+    def edit_listing(listing_id):
+        listing = get_owned_listing_or_403(listing_id)
+        if listing.status == 'sold':
+            flash('Sold listings cannot be edited.', 'error')
+            return redirect(url_for('dashboard'))
+        form = ListingForm()
+        if form.validate_on_submit():
+            listing.title = form.title.data
+            listing.description = form.description.data
+            listing.price = form.price.data
+            listing.category = form.category.data
+            listing.condition = form.condition.data
+            listing.meetup_spot = form.meetup_spot.data
+            if form.image.data:
+                # Delete old image if replacing
+                if listing.image_path:
+                    old_path = os.path.join(app.config['UPLOAD_FOLDER'], listing.image_path)
+                    if os.path.exists(old_path):
+                        os.remove(old_path)
+                listing.image_path = save_upload(form.image.data, app.config['UPLOAD_FOLDER'])
+            db.session.commit()
+            flash('Listing updated!', 'success')
+        else:
+            flash('Please fix the errors in the form.', 'error')
+        return redirect(url_for('dashboard'))
+
+    @app.route('/delete-listing/<int:listing_id>', methods=['POST'])
+    @email_verified_required
+    def delete_listing(listing_id):
+        listing = get_owned_listing_or_403(listing_id)
+        # Delete image from disk
+        if listing.image_path:
+            img_path = os.path.join(app.config['UPLOAD_FOLDER'], listing.image_path)
+            if os.path.exists(img_path):
+                os.remove(img_path)
+        db.session.delete(listing)
+        db.session.commit()
+        flash('Listing deleted.', 'success')
+        return redirect(url_for('dashboard'))
+
+    @app.route('/mark-sold/<int:listing_id>', methods=['POST'])
+    @email_verified_required
+    def mark_sold(listing_id):
+        listing = get_owned_listing_or_403(listing_id)
+        if listing.status != 'sold':
+            listing.status = 'sold'
+            db.session.commit()
+            flash('Listing marked as sold.', 'success')
+        return redirect(url_for('dashboard'))
+
+    @app.route('/edit-profile', methods=['POST'])
+    @email_verified_required
+    def edit_profile():
+        user = db.session.get(User, session['user_id'])
+        form = EditProfileForm()
+        if form.validate_on_submit():
+            user.display_name = form.display_name.data
+            user.bio = form.bio.data
+            db.session.commit()
+            flash('Profile updated!', 'success')
+        return redirect(url_for('dashboard'))
+
+    # ------------------------------------------------------------------
+    # Auth routes
+    # ------------------------------------------------------------------
 
     @app.route('/auth')
     def auth():
         if 'user_id' in session:
             user = db.session.get(User, session['user_id'])
             if user and user.email_verified:
-                return redirect(url_for('index'))
+                return redirect(url_for('gallery'))
         active_tab = request.args.get('tab', 'login')
         return render_template('auth.html',
                                login_form=LoginForm(),
@@ -99,7 +258,7 @@ def init_routes(app):
                 session['user_id'] = user.id
                 if not user.email_verified:
                     return redirect(url_for('verify_otp'))
-                return redirect(url_for('index'))
+                return redirect(url_for('gallery'))
             flash('Invalid email or password.', 'error')
         return render_template('auth.html',
                                login_form=form,
@@ -114,13 +273,13 @@ def init_routes(app):
             session.clear()
             return redirect(url_for('auth'))
         if user.email_verified:
-            return redirect(url_for('index'))
+            return redirect(url_for('gallery'))
         form = OTPForm()
         if form.validate_on_submit():
             if user.is_otp_valid(form.otp_code.data):
                 user.email_verified = True
                 db.session.commit()
-                return redirect(url_for('index'))
+                return redirect(url_for('gallery'))
             flash('Invalid or expired verification code.', 'error')
         return render_template('verify_otp.html', form=form, user_email=user.email)
 

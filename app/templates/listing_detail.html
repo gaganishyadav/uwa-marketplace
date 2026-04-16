@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}{{ listing.title }} - UWA Swap-Meet{% endblock %}
+{% block content %}
+<section class="gallery-page" style="padding-top:100px;">
+    <div style="max-width:1200px;margin:0 auto;padding:0 var(--space-md);">
+        <div class="item-layout">
+            {# ---- Image (D-08) ---- #}
+            <div class="item-image" style="position:relative;">
+                {% if listing.image_path %}
+                <img src="{{ url_for('static', filename='uploads/' + listing.image_path) }}" alt="{{ listing.title }}">
+                {% else %}
+                <div style="width:100%;min-height:400px;display:flex;align-items:center;justify-content:center;background:var(--color-surface-low);border-radius:var(--radius-lg);">
+                    <span class="material-symbols-outlined" style="font-size:5rem;opacity:0.3;color:var(--color-outline);">photo_camera</span>
+                </div>
+                {% endif %}
+                {% if listing.status == 'sold' %}
+                <span class="ad-card-status status-sold" style="position:absolute;top:1rem;right:1rem;font-size:0.75rem;">Sold</span>
+                {% endif %}
+            </div>
+
+            {# ---- Details (D-08, D-09, D-10) ---- #}
+            <div>
+                {% if listing.status == 'sold' %}
+                <span class="ad-card-status status-sold" style="display:inline-block;margin-bottom:var(--space-sm);">Sold</span>
+                {% endif %}
+                <h1 class="item-title">{{ listing.title }}</h1>
+                <span class="item-price">${{ "%.2f" | format(listing.price) }}</span>
+
+                <p class="item-description">{{ listing.description }}</p>
+
+                <div class="item-meta">
+                    <span><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;">category</span> {{ listing.category }}</span>
+                    <span><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;">star</span> {{ listing.condition }}</span>
+                    <span><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;">location_on</span> {{ listing.meetup_spot }}</span>
+                    <span><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;">schedule</span> {{ listing.created_at.strftime('%d %b %Y') }}</span>
+                </div>
+
+                {# ---- Actions (D-09, D-10) ---- #}
+                <div class="item-actions">
+                    {% if user and listing.user_id == user.id %}
+                        {% if listing.status == 'active' %}
+                        <a href="{{ url_for('dashboard') }}" class="btn-primary">Edit Listing</a>
+                        <form action="{{ url_for('mark_sold', listing_id=listing.id) }}" method="post" style="display:inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn-secondary" style="color:#b38600;">Mark Sold</button>
+                        </form>
+                        {% endif %}
+                        <form action="{{ url_for('delete_listing', listing_id=listing.id) }}" method="post" style="display:inline"
+                              onsubmit="return confirm('Are you sure you want to delete this listing?')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn-secondary" style="color:#c62828;">Delete</button>
+                        </form>
+                    {% elif user %}
+                        {# Buyer view: Message Seller button (D-09, deferred to Phase 5) #}
+                        <button class="btn-primary" disabled title="Coming in a future update">Message Seller</button>
+                    {% else %}
+                        {# Not logged in #}
+                        <a href="{{ url_for('auth') }}" class="btn-primary">Log in to message seller</a>
+                    {% endif %}
+                </div>
+
+                {# ---- Seller Info (D-09) ---- #}
+                <div class="item-seller">
+                    <div class="item-seller-avatar">
+                        {{ listing.user.display_name[0] | upper }}
+                    </div>
+                    <div class="item-seller-info">
+                        <div class="item-seller-name">{{ listing.user.display_name }}</div>
+                        <div class="item-seller-date">Posted {{ listing.created_at.strftime('%d %b %Y') }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

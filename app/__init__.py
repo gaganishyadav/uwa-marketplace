@@ -2,10 +2,12 @@ import os
 from datetime import timedelta
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
 from flask_mail import Mail
 
 db = SQLAlchemy()
+migrate = Migrate()
 csrf = CSRFProtect()
 mail = Mail()
 
@@ -32,22 +34,32 @@ def create_app(config=None):
     # Session config (per D-13 -- browser session lifetime)
     app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=5)
 
+    # Upload config (per D-06)
+    app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB
+    app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'uploads')
+
     # Override config for testing
     if config:
         app.config.update(config)
 
     # Initialize extensions
     db.init_app(app)
+    migrate.init_app(app, db)
     csrf.init_app(app)
     mail.init_app(app)
+
+    # Make current user available in all templates
+    @app.context_processor
+    def inject_user():
+        from app.models import User
+        from flask import session as flask_session
+        user = None
+        if flask_session.get('user_id'):
+            user = db.session.get(User, flask_session['user_id'])
+        return {'user': user}
 
     # Import routes
     from app.routes import init_routes
     init_routes(app)
-
-    # Create database tables
-    with app.app_context():
-        from app import models  # noqa: F401
-        db.create_all()
 
     return app
