@@ -7,8 +7,36 @@
     <div class="gallery-header">
         <h1 class="gallery-title">Browse Listings</h1>
         <p class="gallery-subtitle">Find textbooks, furniture, electronics and more from fellow UWA students</p>
+
+        <div class="search-bar">
+            <div class="search-input-wrapper">
+                <span class="material-symbols-outlined search-icon">search</span>
+                <input type="text" id="search-input" class="search-input" placeholder="Search listings..." autocomplete="off">
+                <button type="button" id="search-clear" class="search-clear" aria-label="Clear search" title="Clear search" style="display:none;">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="filter-bar">
+            <button class="filter-pill active" data-category="" id="filter-all">All</button>
+            <button class="filter-pill" data-category="Textbooks">Textbooks</button>
+            <button class="filter-pill" data-category="Electronics">Electronics</button>
+            <button class="filter-pill" data-category="Furniture">Furniture</button>
+            <button class="filter-pill" data-category="Supplies">Supplies</button>
+            <button class="filter-pill" data-category="Sports">Sports</button>
+            <button class="filter-pill" data-category="Clothing">Clothing</button>
+        </div>
+
+        <div class="price-range">
+            <input type="number" id="min-price" class="price-input" placeholder="Min $" step="1" min="0">
+            <span class="price-range-separator">&mdash;</span>
+            <input type="number" id="max-price" class="price-input" placeholder="Max $" step="1" min="0">
+        </div>
     </div>
-    <div class="gallery-grid">
+
+    <div class="gallery-grid" id="gallery-grid">
+        <span id="result-count" class="result-count">Showing {{ listings | length }} listing{{ 's' if listings | length != 1 else '' }}</span>
         {% if listings %}
             {% for listing in listings %}
                 {{ listing_card(listing, show_actions=(user is not none and listing.user_id == user.id), current_user_id=(user.id if user else none)) }}
@@ -28,4 +56,8 @@
 {% if listing_form %}
 {% include '_post_ad_modal.html' %}
 {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/search.js') }}" defer></script>
 {% endblock %}
