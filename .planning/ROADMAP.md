@@ -66,7 +66,12 @@ Plans:
   2. User can filter by category (Textbooks, Furniture, Electronics, Other)
   3. User can filter by price range (min/max inputs)
   4. Search results update in real-time as user types
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 03-01-PLAN.md -- Search API endpoint, HTML partial template, unit tests (TDD)
+- [ ] 03-02-PLAN.md -- Search UI: gallery template, CSS styles, jQuery AJAX search.js
+- [ ] 03-03-PLAN.md -- Flask seed CLI command for mock data
 
 **UI hint**: yes
 
@@ -128,7 +133,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 |-------|----------------|--------|-----------|
 | 1. Flask Foundation & Authentication | 2/2 | Complete | 2026-04-04 |
 | 2. Marketplace Core | 0/0 | Not started | - |
-| 3. Search & Discovery | 0/0 | Not started | - |
+| 3. Search & Discovery | 0/3 | Planning | - |
 | 4. Campus Map Integration | 0/0 | Not started | - |
 | 5. Messaging System | 0/0 | Not started | - |
 | 6. Security Hardening | 0/0 | Not started | - |
@@ -136,4 +141,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 
 ---
 
-*Last updated: 2026-04-04*
+*Last updated: 2026-04-20*
