@@ -121,10 +121,11 @@ def test_filter_min_price(search_client):
     response = search_client.get('/api/search?min_price=50')
     assert response.status_code == 200
     assert b'Office Chair' in response.data  # $120
-    assert b'Calculus Textbook' in response.data  # $45 -- should NOT appear
-    # Only Office Chair ($120) meets min_price=50
-    data_str = response.data.decode('utf-8')
-    assert data_str.count('ad-card') == 1  # only one card rendered
+    assert b'Calculus Textbook' not in response.data  # $45 < $50
+    # Only Office Chair ($120) meets min_price=50 -- verify no other listings appear
+    assert b'Physics Textbook' not in response.data  # $35
+    assert b'Laptop Stand' not in response.data  # $25
+    assert b'Highlighters Pack' not in response.data  # $8
 
 
 def test_filter_max_price(search_client):

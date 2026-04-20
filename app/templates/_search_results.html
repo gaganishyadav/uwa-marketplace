@@ -1,0 +1,16 @@
+{% from "_listing_card.html" import listing_card %}
+<span id="result-count" class="result-count">{{ count_text }}</span>
+{% if listings %}
+    {% for listing in listings %}
+        {{ listing_card(listing, show_actions=(user is not none and listing.user_id == user.id), current_user_id=(user.id if user else none)) }}
+    {% endfor %}
+{% else %}
+    <div class="search-empty">
+        <div class="search-empty-icon">
+            <span class="material-symbols-outlined" style="font-size:3rem;opacity:0.4;">search_off</span>
+        </div>
+        <h3 class="search-empty-title">No listings found</h3>
+        <p class="search-empty-desc">Try different keywords or clear your filters</p>
+        <button class="btn-secondary" id="btn-clear-filters">Clear filters</button>
+    </div>
+{% endif %}
