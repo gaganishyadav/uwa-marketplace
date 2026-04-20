@@ -133,7 +133,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 |-------|----------------|--------|-----------|
 | 1. Flask Foundation & Authentication | 2/2 | Complete | 2026-04-04 |
 | 2. Marketplace Core | 0/0 | Not started | - |
-| 3. Search & Discovery | 0/3 | Planning | - |
+| 3. Search & Discovery | 0/3 | Planned | - |
 | 4. Campus Map Integration | 0/0 | Not started | - |
 | 5. Messaging System | 0/0 | Not started | - |
 | 6. Security Hardening | 0/0 | Not started | - |
