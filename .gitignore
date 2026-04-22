@@ -2,6 +2,7 @@
 .claud
 CLAUDE.md
 stitch_remix_of_uwa_swap_meet/
+.venv
 
 # Flask
 instance/

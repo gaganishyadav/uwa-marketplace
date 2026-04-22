@@ -113,13 +113,6 @@ CATEGORIES = [('Textbooks', 'Textbooks'), ('Electronics', 'Electronics'),
 CONDITIONS = [('New', 'New'), ('Like New', 'Like New'),
               ('Good', 'Good'), ('Fair', 'Fair')]
 
-MEETUP_SPOTS = [('Reid Library', 'Reid Library'),
-                ('Barry J. Marshall Library', 'Barry J. Marshall Library'),
-                ('Student Guild', 'Student Guild'),
-                ('Winthrop Hall', 'Winthrop Hall'),
-                ('Oak Lawn', 'Oak Lawn')]
-
-
 class ListingForm(FlaskForm):
     title = StringField('Title', validators=[
         DataRequired(), Length(min=5, max=200)])
@@ -128,7 +121,10 @@ class ListingForm(FlaskForm):
     price = FloatField('Price', validators=[InputRequired(), NumberRange(min=0, message='Price must be a non-negative number.')])
     description = TextAreaField('Description', validators=[
         DataRequired(), Length(min=10, max=2000)])
-    meetup_spot = SelectField('Meetup Spot', choices=MEETUP_SPOTS, validators=[DataRequired()])
+    meetup_spot = StringField('Meetup Spot', validators=[
+        DataRequired(message='Please select a meetup location.'),
+        Length(max=200)
+    ])
     image = FileField('Photo', validators=[
         FileAllowed(['jpg', 'jpeg', 'png'], 'JPG or PNG images only!')])
 
