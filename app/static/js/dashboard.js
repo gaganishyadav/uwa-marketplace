@@ -53,8 +53,8 @@ $(document).ready(function () {
 
     // --- Open Post Ad Modal ---
     $('#btn-post-ad, #nav-post-btn').on('click', function () {
-        // Reset modal to "Post New Ad" state
-        $('#modal-post-ad .modal-title').text('Post New Ad');
+        // Reset modal to "List an Item" state
+        $('#modal-post-ad .modal-title').text('List an Item');
         $('#form-post-ad')[0].reset();
         // Clear hidden edit-id field
         $('#edit-listing-id').val('');
