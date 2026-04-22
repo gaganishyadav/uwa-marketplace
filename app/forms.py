@@ -44,8 +44,8 @@ class RegistrationForm(FlaskForm):
 
     def validate_email(self, field):
         """Only accept @student.uwa.edu.au addresses (per D-09)."""
-        if not field.data.endswith('@student.uwa.edu.au'):
-            raise ValidationError('Please use your UWA student email address.')
+        if not field.data.endswith('uwa.edu.au'):
+            raise ValidationError('Please use your UWA email address.')
 
     def validate_confirm_password(self, field):
         """Passwords must match."""
