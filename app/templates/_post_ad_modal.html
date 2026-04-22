@@ -33,9 +33,14 @@
                     {{ listing_form.price(class="form-input", id="ad-price", placeholder="0.00") }}
                 </div>
                 <div class="form-group">
-                    {{ listing_form.meetup_spot.label(class="form-label") }}
-                    {{ listing_form.meetup_spot(class="form-input form-select", id="ad-location") }}
+                    {{ listing_form.stock.label(class="form-label") }}
+                    {{ listing_form.stock(class="form-input", id="ad-stock", placeholder="1", min="1") }}
                 </div>
+            </div>
+
+            <div class="form-group">
+                {{ listing_form.meetup_spot.label(class="form-label") }}
+                {{ listing_form.meetup_spot(class="form-input form-select", id="ad-location") }}
             </div>
 
             <div class="form-group">

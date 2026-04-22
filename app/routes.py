@@ -177,6 +177,7 @@ def init_routes(app):
                 title=form.title.data,
                 description=form.description.data,
                 price=form.price.data,
+                stock=form.stock.data,
                 category=form.category.data,
                 condition=form.condition.data,
                 meetup_spot=form.meetup_spot.data,
@@ -201,6 +202,7 @@ def init_routes(app):
             listing.title = form.title.data
             listing.description = form.description.data
             listing.price = form.price.data
+            listing.stock = form.stock.data
             listing.category = form.category.data
             listing.condition = form.condition.data
             listing.meetup_spot = form.meetup_spot.data

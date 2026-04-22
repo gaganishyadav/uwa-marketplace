@@ -2,7 +2,7 @@ import re
 
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
-from wtforms import StringField, PasswordField, SelectField, TextAreaField, FloatField
+from wtforms import StringField, PasswordField, SelectField, TextAreaField, FloatField, IntegerField
 from wtforms.validators import (
     DataRequired,
     Email,
@@ -126,6 +126,8 @@ class ListingForm(FlaskForm):
     category = SelectField('Category', choices=CATEGORIES, validators=[DataRequired()])
     condition = SelectField('Condition', choices=CONDITIONS, validators=[DataRequired()])
     price = FloatField('Price', validators=[InputRequired(), NumberRange(min=0, message='Price must be a non-negative number.')])
+    stock = IntegerField('Quantity', default=1, validators=[
+        InputRequired(), NumberRange(min=1, message='Quantity must be at least 1.')])
     description = TextAreaField('Description', validators=[
         DataRequired(), Length(min=10, max=2000)])
     meetup_spot = SelectField('Meetup Spot', choices=MEETUP_SPOTS, validators=[DataRequired()])
