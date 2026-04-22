@@ -88,6 +88,7 @@ class Listing(db.Model):
     condition = db.Column(db.String(20), nullable=False)
     meetup_spot = db.Column(db.String(100), nullable=False)
     image_path = db.Column(db.String(200), nullable=True)
+    stock = db.Column(db.Integer, default=1, server_default='1', nullable=False)
     status = db.Column(db.String(20), default='active', nullable=False)
     created_at = db.Column(db.DateTime, default=_utcnow, nullable=False)
 

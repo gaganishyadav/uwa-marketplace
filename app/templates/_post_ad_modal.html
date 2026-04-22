@@ -33,9 +33,18 @@
                     {{ listing_form.price(class="form-input", id="ad-price", placeholder="0.00") }}
                 </div>
                 <div class="form-group">
-                    {{ listing_form.meetup_spot.label(class="form-label") }}
-                    {{ listing_form.meetup_spot(class="form-input form-select", id="ad-location") }}
+                    {{ listing_form.stock.label(class="form-label") }}
+                    {{ listing_form.stock(class="form-input", id="ad-stock", placeholder="1", min="1") }}
+                    <small style="color:var(--color-outline);font-size:0.7rem;">
+                        <span class="material-symbols-outlined" style="font-size:0.8rem;vertical-align:middle;">sticky_note_2</span>
+                        Never shown to buyers. Use it as your own reminder.
+                    </small>
                 </div>
+            </div>
+
+            <div class="form-group">
+                {{ listing_form.meetup_spot.label(class="form-label") }}
+                {{ listing_form.meetup_spot(class="form-input form-select", id="ad-location") }}
             </div>
 
             <div class="form-group">

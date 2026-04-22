@@ -19,6 +19,12 @@
         <h3 class="ad-card-title">{{ listing.title }}</h3>
         <span class="ad-card-price">${{ "%.2f" | format(listing.price) }}</span>
         <p class="ad-card-meta">{{ listing.condition }} &middot; {{ listing.meetup_spot }}</p>
+        {% if current_user_id and listing.user_id == current_user_id %}
+        <p class="ad-card-private-note" title="Private note — only you can see this">
+            <span class="material-symbols-outlined" style="font-size:0.9rem;vertical-align:middle;">sticky_note_2</span>
+            My count: {{ listing.stock }}
+        </p>
+        {% endif %}
     </div>
     {% if show_actions and listing.user_id == current_user_id %}
     <div class="ad-card-footer">

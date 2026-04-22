@@ -1207,6 +1207,32 @@ section {
     color: var(--color-on-surface-variant);
 }
 
+.ad-card-private-note {
+    font-size: 0.75rem;
+    color: var(--color-outline);
+    margin-top: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    background: var(--color-surface-low);
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-style: italic;
+}
+
+.owner-private-note {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.875rem;
+    color: var(--color-on-surface-variant);
+    background: var(--color-surface-low);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-sm);
+    margin: var(--space-sm) 0;
+    font-style: italic;
+}
+
 .ad-card-footer {
     display: flex;
     gap: 0.5rem;

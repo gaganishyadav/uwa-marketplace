@@ -35,6 +35,15 @@
                     <span><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;">schedule</span> {{ listing.created_at.strftime('%d %b %Y') }}</span>
                 </div>
 
+                {# Owner-only private note (invisible to buyers) #}
+                {% if user and listing.user_id == user.id %}
+                <div class="owner-private-note" title="Private note — only you can see this">
+                    <span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;">sticky_note_2</span>
+                    My count: {{ listing.stock }}
+                    <small style="margin-left:0.5rem;opacity:0.7;">(private — only you see this)</small>
+                </div>
+                {% endif %}
+
                 {# ---- Actions (D-09, D-10) ---- #}
                 <div class="item-actions">
                     {% if user and listing.user_id == user.id %}
