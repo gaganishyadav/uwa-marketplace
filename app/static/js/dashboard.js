@@ -217,16 +217,20 @@ $(document).ready(function () {
         });
     }
 
-    // Fallback: scan Mapbox GL rendered features for a title/name property
+    // Fallback: scan Mapbox GL rendered features for a specific building title
     function pickFromRenderedFeatures(point, lngLat) {
         if (!meetupMap) return;
         var features = meetupMap.queryRenderedFeatures(point);
         for (var i = 0; i < features.length; i++) {
-            var props = features[i].properties;
-            if (props && (props.title || props.name)) {
-                setMeetupSpot(cleanBuildingName(props.title || props.name), lngLat);
-                return;
-            }
+            var f = features[i];
+            var props = f.properties;
+            if (!props || !(props.title || props.name)) continue;
+            var layerId = (f.layer && f.layer.id) ? f.layer.id.toLowerCase() : '';
+            var title = (props.title || props.name).toLowerCase();
+            // Skip campus/university boundary features
+            if (layerId.indexOf('campus') !== -1 || title.indexOf('campus') !== -1) continue;
+            setMeetupSpot(cleanBuildingName(props.title || props.name), lngLat);
+            return;
         }
     }
 
@@ -282,7 +286,8 @@ $(document).ready(function () {
                     .then(function (poi) {
                         if (poi && poi.properties) {
                             var title = poi.properties.title || poi.properties.name || poi.properties.longName;
-                            if (title) {
+                            // Reject campus-level results (too broad)
+                            if (title && title.toLowerCase().indexOf('campus') === -1) {
                                 setMeetupSpot(cleanBuildingName(title), lngLat);
                                 return;
                             }
