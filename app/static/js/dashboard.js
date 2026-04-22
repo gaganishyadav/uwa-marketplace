@@ -248,31 +248,28 @@ $(document).ready(function () {
             meetupMap.on('load', function () {
                 meetupMap.setCampus(309);
 
-                // Attach click + hover cursor to every symbol layer (building name labels)
-                var style = meetupMap.getStyle();
-                if (style && style.layers) {
-                    style.layers.forEach(function (layer) {
-                        if (layer.type !== 'symbol') return;
-                        meetupMap.on('click', layer.id, function (e) {
-                            if (!e.features || !e.features.length) return;
-                            var props = e.features[0].properties;
-                            var title = props.title || props.name || props.longName;
-                            if (!title || title.toLowerCase().endsWith(' campus')) return;
-                            setMeetupSpot(cleanBuildingName(title), e.lngLat);
-                        });
-                        meetupMap.on('mouseenter', layer.id, function () {
-                            meetupMap.getCanvas().style.cursor = 'pointer';
-                        });
-                        meetupMap.on('mouseleave', layer.id, function () {
-                            meetupMap.getCanvas().style.cursor = '';
-                        });
-                    });
-                }
-
                 if (prefillValue) {
                     $('#building-search').val(prefillValue);
                     searchBuildingOnMap(prefillValue);
                 }
+            });
+
+            meetupMap.on('click', function (e) {
+                var lngLat = e.lngLat;
+                var poiPromise;
+                try {
+                    poiPromise = Mazemap.Data.getPoiAtPoint({ lngLat: lngLat, zLevel: 0 });
+                } catch (_) {
+                    poiPromise = Promise.reject();
+                }
+                poiPromise.then(function (poi) {
+                    if (!poi || !poi.properties) return;
+                    // buildingName is the human-readable name; title is the room code
+                    var name = poi.properties.buildingName || poi.properties.title || poi.properties.name;
+                    if (name && !name.toLowerCase().endsWith(' campus')) {
+                        setMeetupSpot(cleanBuildingName(name), lngLat);
+                    }
+                }).catch(function () {});
             });
         }, 200);
     }
