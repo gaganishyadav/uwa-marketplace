@@ -76,9 +76,11 @@ def init_routes(app):
         sold_listings = Listing.query.filter_by(status='sold').order_by(
             Listing.created_at.desc()).all()
         listing_form = ListingForm()
+        user = db.session.get(User, session['user_id']) if 'user_id' in session else None
         return render_template('gallery.html',
                                listings=active_listings + sold_listings,
-                               listing_form=listing_form)
+                               listing_form=listing_form,
+                               user=user)
 
     @app.route('/api/search')
     def api_search():
@@ -135,10 +137,12 @@ def init_routes(app):
         else:
             count_text = f'Showing {count} listing{"s" if count != 1 else ""}'
 
+        user = db.session.get(User, session['user_id']) if 'user_id' in session else None
         return render_template('_search_results.html',
                                listings=listings,
                                count_text=count_text,
-                               search_query=q)
+                               search_query=q,
+                               user=user)
 
     @app.route('/listing/<int:listing_id>')
     def listing_detail(listing_id):
@@ -146,7 +150,9 @@ def init_routes(app):
         if not listing:
             abort(404)
         user = db.session.get(User, session['user_id']) if 'user_id' in session else None
-        return render_template('listing_detail.html', listing=listing, current_user=user)
+        listing_form = ListingForm()
+        return render_template('listing_detail.html', listing=listing, current_user=user,
+                               listing_form=listing_form)
 
     @app.route('/dashboard')
     @email_verified_required
