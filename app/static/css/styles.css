@@ -159,6 +159,7 @@ body {
 .btn-large {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: var(--space-xs);
     padding: 1rem 2rem;
     font-size: 0.875rem;
