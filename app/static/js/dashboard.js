@@ -217,22 +217,6 @@ $(document).ready(function () {
         });
     }
 
-    // Fallback: scan Mapbox GL rendered features for a specific building title
-    function pickFromRenderedFeatures(point, lngLat) {
-        if (!meetupMap) return;
-        var features = meetupMap.queryRenderedFeatures(point);
-        for (var i = 0; i < features.length; i++) {
-            var f = features[i];
-            var props = f.properties;
-            if (!props || !(props.title || props.name)) continue;
-            var layerId = (f.layer && f.layer.id) ? f.layer.id.toLowerCase() : '';
-            var title = (props.title || props.name).toLowerCase();
-            // Skip campus/university boundary features
-            if (layerId.indexOf('campus') !== -1 || title.indexOf('campus') !== -1) continue;
-            setMeetupSpot(cleanBuildingName(props.title || props.name), lngLat);
-            return;
-        }
-    }
 
     function initMeetupMap(prefillValue) {
         // Delay to let modal finish opening before map initialises
@@ -264,39 +248,31 @@ $(document).ready(function () {
             meetupMap.on('load', function () {
                 meetupMap.setCampus(309);
 
+                // Attach click + hover cursor to every symbol layer (building name labels)
+                var style = meetupMap.getStyle();
+                if (style && style.layers) {
+                    style.layers.forEach(function (layer) {
+                        if (layer.type !== 'symbol') return;
+                        meetupMap.on('click', layer.id, function (e) {
+                            if (!e.features || !e.features.length) return;
+                            var props = e.features[0].properties;
+                            var title = props.title || props.name || props.longName;
+                            if (!title || title.toLowerCase().endsWith(' campus')) return;
+                            setMeetupSpot(cleanBuildingName(title), e.lngLat);
+                        });
+                        meetupMap.on('mouseenter', layer.id, function () {
+                            meetupMap.getCanvas().style.cursor = 'pointer';
+                        });
+                        meetupMap.on('mouseleave', layer.id, function () {
+                            meetupMap.getCanvas().style.cursor = '';
+                        });
+                    });
+                }
+
                 if (prefillValue) {
                     $('#building-search').val(prefillValue);
                     searchBuildingOnMap(prefillValue);
                 }
-            });
-
-            // Click on map to pick building
-            meetupMap.on('click', function (e) {
-                var lngLat = e.lngLat;
-
-                // Primary: Mazemap POI data lookup
-                var poiPromise;
-                try {
-                    poiPromise = Mazemap.Data.getPoiAtPoint({ lngLat: lngLat, zLevel: 0 });
-                } catch (_) {
-                    poiPromise = Promise.reject();
-                }
-
-                poiPromise
-                    .then(function (poi) {
-                        if (poi && poi.properties) {
-                            var title = poi.properties.title || poi.properties.name || poi.properties.longName;
-                            // Reject campus-level results (too broad)
-                            if (title && title.toLowerCase().indexOf('campus') === -1) {
-                                setMeetupSpot(cleanBuildingName(title), lngLat);
-                                return;
-                            }
-                        }
-                        pickFromRenderedFeatures(e.point, lngLat);
-                    })
-                    .catch(function () {
-                        pickFromRenderedFeatures(e.point, lngLat);
-                    });
             });
         }, 200);
     }
