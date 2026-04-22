@@ -246,8 +246,6 @@ $(document).ready(function () {
             });
 
             meetupMap.on('load', function () {
-                meetupMap.setCampus(309);
-
                 if (prefillValue) {
                     $('#building-search').val(prefillValue);
                     searchBuildingOnMap(prefillValue);
@@ -256,20 +254,18 @@ $(document).ready(function () {
 
             meetupMap.on('click', function (e) {
                 var lngLat = e.lngLat;
-                var poiPromise;
-                try {
-                    poiPromise = Mazemap.Data.getPoiAtPoint({ lngLat: lngLat, zLevel: 0 });
-                } catch (_) {
-                    poiPromise = Promise.reject();
-                }
-                poiPromise.then(function (poi) {
-                    if (!poi || !poi.properties) return;
-                    // buildingName is the human-readable name; title is the room code
-                    var name = poi.properties.buildingName || poi.properties.title || poi.properties.name;
-                    if (name && !name.toLowerCase().endsWith(' campus')) {
-                        setMeetupSpot(cleanBuildingName(name), lngLat);
-                    }
-                }).catch(function () {});
+                var zLevel = (meetupMap.zLevel !== undefined) ? meetupMap.zLevel : 1;
+                // getPoiAt is the correct static method (not getPoiAtPoint)
+                Mazemap.Data.getPoiAt(lngLat, zLevel)
+                    .then(function (poi) {
+                        if (!poi || !poi.properties) return;
+                        var name = poi.properties.buildingName || poi.properties.name || poi.properties.title;
+                        if (name && !name.toLowerCase().endsWith(' campus')) {
+                            setMeetupSpot(cleanBuildingName(name), lngLat);
+                        }
+                    })
+                    .catch(function () {});
+
             });
         }, 200);
     }
