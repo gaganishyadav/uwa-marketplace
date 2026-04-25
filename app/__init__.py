@@ -62,4 +62,89 @@ def create_app(config=None):
     from app.routes import init_routes
     init_routes(app)
 
+    # Seed command for development data (per D-13)
+    @app.cli.command('seed')
+    def seed_command():
+        """Seed the database with mock listings for development (idempotent, per D-13)."""
+        from app.models import User, Listing
+        import click
+
+        if Listing.query.first() is not None:
+            click.echo('Database already contains listings. Skipping seed.')
+            return
+
+        # Create seed users
+        users_data = [
+            ('Alice Chen', 'alice.seed@student.uwa.edu.au'),
+            ('Bob Martinez', 'bob.seed@student.uwa.edu.au'),
+            ('Charlie Kim', 'charlie.seed@student.uwa.edu.au'),
+            ('Diana Patel', 'diana.seed@student.uwa.edu.au'),
+        ]
+        users = []
+        for name, email in users_data:
+            user = User(display_name=name, email=email)
+            user.set_password('Password1')
+            user.email_verified = True
+            db.session.add(user)
+            users.append(user)
+        db.session.commit()
+
+        # Create listings
+        listings_data = [
+            # Textbooks (5)
+            {'title': 'Calculus Textbook', 'description': 'Used for MATH1002. Covers single and multivariable calculus. Great textbook for first-year students.', 'price': 45.0, 'category': 'Textbooks', 'condition': 'Good', 'meetup_spot': 'Reid Library', 'status': 'active'},
+            {'title': 'Physics Textbook', 'description': 'University physics textbook for PHYS1001. Slightly worn but perfectly usable. A core textbook for science students.', 'price': 35.0, 'category': 'Textbooks', 'condition': 'Fair', 'meetup_spot': 'Reid Library', 'status': 'active'},
+            {'title': 'Linear Algebra Textbook', 'description': 'Clean copy, no annotations. Used textbook for MATH1001 linear algebra module.', 'price': 40.0, 'category': 'Textbooks', 'condition': 'Like New', 'meetup_spot': 'Barry J. Marshall Library', 'status': 'active'},
+            {'title': 'Chemistry Textbook', 'description': 'General chemistry textbook with periodic table insert. Used for CHEM1002.', 'price': 30.0, 'category': 'Textbooks', 'condition': 'Good', 'meetup_spot': 'Student Guild', 'status': 'sold'},
+            {'title': 'Used textbook for MATH1002', 'description': 'Alternative calculus textbook recommended by the lecturer. Used by previous student.', 'price': 25.0, 'category': 'Textbooks', 'condition': 'Fair', 'meetup_spot': 'Oak Lawn', 'status': 'active'},
+
+            # Electronics (4)
+            {'title': 'Laptop Stand', 'description': 'Aluminum laptop stand, adjustable height. Perfect for student desk setup.', 'price': 25.0, 'category': 'Electronics', 'condition': 'Like New', 'meetup_spot': 'Student Guild', 'status': 'active'},
+            {'title': 'Wireless Mouse', 'description': 'Logitech wireless mouse with USB receiver. Used for one semester.', 'price': 15.0, 'category': 'Electronics', 'condition': 'Good', 'meetup_spot': 'Winthrop Hall', 'status': 'active'},
+            {'title': 'USB-C Hub', 'description': '7-in-1 USB-C hub with HDMI, USB 3.0, SD card reader. Great for laptop users.', 'price': 50.0, 'category': 'Electronics', 'condition': 'New', 'meetup_spot': 'Student Guild', 'status': 'sold'},
+            {'title': 'Scientific Calculator', 'description': 'Casio fx-82 calculator. Required for many science and engineering units.', 'price': 20.0, 'category': 'Electronics', 'condition': 'Good', 'meetup_spot': 'Reid Library', 'status': 'active'},
+
+            # Furniture (4)
+            {'title': 'Ergonomic Office Chair', 'description': 'Mesh back office chair with lumbar support. Ideal for long study sessions. Keep your textbook collection nearby.', 'price': 120.0, 'category': 'Furniture', 'condition': 'Good', 'meetup_spot': 'Oak Lawn', 'status': 'active'},
+            {'title': 'Standing Desk', 'description': 'Adjustable height standing desk. Used by student for 6 months. Minor wear.', 'price': 150.0, 'category': 'Furniture', 'condition': 'Good', 'meetup_spot': 'Oak Lawn', 'status': 'sold'},
+            {'title': 'Bookshelf', 'description': 'Tall wooden bookshelf with 5 shelves. Great for organizing your textbook collection and study materials.', 'price': 80.0, 'category': 'Furniture', 'condition': 'Fair', 'meetup_spot': 'Winthrop Hall', 'status': 'active'},
+            {'title': 'Desk Lamp', 'description': 'LED desk lamp with adjustable brightness. Perfect companion for late-night study sessions.', 'price': 30.0, 'category': 'Furniture', 'condition': 'Like New', 'meetup_spot': 'Reid Library', 'status': 'active'},
+
+            # Supplies (4)
+            {'title': 'Highlighters Pack', 'description': 'Pack of 8 assorted color highlighters. Essential student supply for marking up textbooks and notes.', 'price': 8.0, 'category': 'Supplies', 'condition': 'New', 'meetup_spot': 'Oak Lawn', 'status': 'active'},
+            {'title': 'Notebook Bundle', 'description': 'Set of 5 A4 notebooks, lined. Used by student for lecture notes across multiple units.', 'price': 12.0, 'category': 'Supplies', 'condition': 'New', 'meetup_spot': 'Student Guild', 'status': 'active'},
+            {'title': 'Stationery Set', 'description': 'Pens, pencils, erasers, and ruler. Comprehensive student stationery kit.', 'price': 10.0, 'category': 'Supplies', 'condition': 'New', 'meetup_spot': 'Barry J. Marshall Library', 'status': 'active'},
+            {'title': 'Binder Clips Set', 'description': 'Assorted binder clips for organizing handouts and textbook chapter printouts.', 'price': 5.0, 'category': 'Supplies', 'condition': 'New', 'meetup_spot': 'Oak Lawn', 'status': 'active'},
+
+            # Sports (4)
+            {'title': 'Yoga Mat', 'description': '6mm thick yoga mat, purple. Used a few times, excellent condition.', 'price': 18.0, 'category': 'Sports', 'condition': 'Like New', 'meetup_spot': 'Winthrop Hall', 'status': 'active'},
+            {'title': 'Running Shoes', 'description': 'Nike running shoes, size 10. Used for UWA gym and running around campus.', 'price': 65.0, 'category': 'Sports', 'condition': 'Good', 'meetup_spot': 'Oak Lawn', 'status': 'active'},
+            {'title': 'Tennis Racket', 'description': 'Wilson tennis racket with cover. Used for UWA tennis club sessions.', 'price': 55.0, 'category': 'Sports', 'condition': 'Good', 'meetup_spot': 'Student Guild', 'status': 'active'},
+            {'title': 'Sports Water Bottle', 'description': '1L insulated water bottle. Keeps drinks cold during sports and gym sessions.', 'price': 22.0, 'category': 'Sports', 'condition': 'New', 'meetup_spot': 'Reid Library', 'status': 'active'},
+
+            # Clothing (4)
+            {'title': 'Lab Coat', 'description': 'Chemistry lab coat, size M. Required for lab units. Worn once, washed, selling as I switched majors.', 'price': 15.0, 'category': 'Clothing', 'condition': 'New', 'meetup_spot': 'Winthrop Hall', 'status': 'active'},
+            {'title': 'UWA Hoodie', 'description': 'Official UWA hoodie, size L. Warm and comfortable for winter lectures.', 'price': 40.0, 'category': 'Clothing', 'condition': 'Like New', 'meetup_spot': 'Student Guild', 'status': 'active'},
+            {'title': 'Graduation Gown', 'description': 'Standard graduation gown. Used for one ceremony. Save money renting if you are graduating soon.', 'price': 60.0, 'category': 'Clothing', 'condition': 'Good', 'meetup_spot': 'Winthrop Hall', 'status': 'sold'},
+            {'title': 'Running Shorts', 'description': 'Lightweight running shorts, size M. Perfect for UWA gym or Oak Lawn workouts.', 'price': 10.0, 'category': 'Clothing', 'condition': 'Good', 'meetup_spot': 'Oak Lawn', 'status': 'active'},
+        ]
+
+        for i, data in enumerate(listings_data):
+            user = users[i % len(users)]
+            listing = Listing(
+                user_id=user.id,
+                title=data['title'],
+                description=data['description'],
+                price=data['price'],
+                category=data['category'],
+                condition=data['condition'],
+                meetup_spot=data['meetup_spot'],
+                image_path=None,
+                status=data['status'],
+            )
+            db.session.add(listing)
+
+        db.session.commit()
+        click.echo(f'Seeded {len(listings_data)} mock listings from {len(users)} users.')
+
     return app

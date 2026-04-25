@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Flask Foundation & Authentication** - Project setup, user registration, login, logout
 - [ ] **Phase 2: Marketplace Core** - Listing CRUD, public gallery, category management
-- [ ] **Phase 3: Search & Discovery** - AJAX search, filtering, category UI
+- [x] **Phase 3: Search & Discovery** - AJAX search, filtering, category UI
 - [ ] **Phase 4: Campus Map Integration** - Leaflet.js integration with meetup spot selection
 - [ ] **Phase 5: Messaging System** - Buyer-seller messaging with inbox
 - [ ] **Phase 6: Security Hardening** - CSRF, password hashing, session security, input validation
@@ -66,7 +66,12 @@ Plans:
   2. User can filter by category (Textbooks, Furniture, Electronics, Other)
   3. User can filter by price range (min/max inputs)
   4. Search results update in real-time as user types
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [x] 03-01-PLAN.md -- Search API endpoint, HTML partial template, unit tests (TDD)
+- [x] 03-02-PLAN.md -- Search UI: gallery template, CSS styles, jQuery AJAX search.js
+- [x] 03-03-PLAN.md -- Flask seed CLI command for mock data
 
 **UI hint**: yes
 
@@ -128,7 +133,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 |-------|----------------|--------|-----------|
 | 1. Flask Foundation & Authentication | 2/2 | Complete | 2026-04-04 |
 | 2. Marketplace Core | 0/0 | Not started | - |
-| 3. Search & Discovery | 0/0 | Not started | - |
+| 3. Search & Discovery | 3/3 | Complete | 2026-04-20 |
 | 4. Campus Map Integration | 0/0 | Not started | - |
 | 5. Messaging System | 0/0 | Not started | - |
 | 6. Security Hardening | 0/0 | Not started | - |
@@ -136,4 +141,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 
 ---
 
-*Last updated: 2026-04-04*
+*Last updated: 2026-04-20*

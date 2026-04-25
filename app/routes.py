@@ -80,6 +80,66 @@ def init_routes(app):
                                listings=active_listings + sold_listings,
                                listing_form=listing_form)
 
+    @app.route('/api/search')
+    def api_search():
+        """AJAX search endpoint -- returns rendered HTML cards (per D-02, D-03, D-08)."""
+        q = request.args.get('q', '').strip()
+        category = request.args.get('category', '').strip()
+        min_price = request.args.get('min_price', type=float)
+        max_price = request.args.get('max_price', type=float)
+
+        # Start with active and sold queries separately (per D-11: active first)
+        active_query = Listing.query.filter_by(status='active')
+        sold_query = Listing.query.filter_by(status='sold')
+
+        # Keyword search on title + description (per D-03: case-insensitive LIKE)
+        if q:
+            # Escape LIKE special characters (per Pitfall 2 in RESEARCH.md)
+            search_term = q.replace('%', r'\%').replace('_', r'\_')
+            search_pattern = f'%{search_term}%'
+            active_query = active_query.filter(
+                db.or_(
+                    Listing.title.ilike(search_pattern),
+                    Listing.description.ilike(search_pattern),
+                )
+            )
+            sold_query = sold_query.filter(
+                db.or_(
+                    Listing.title.ilike(search_pattern),
+                    Listing.description.ilike(search_pattern),
+                )
+            )
+
+        # Category filter (per D-05, D-06)
+        if category:
+            active_query = active_query.filter_by(category=category)
+            sold_query = sold_query.filter_by(category=category)
+
+        # Price range filter (per D-07)
+        if min_price is not None:
+            active_query = active_query.filter(Listing.price >= min_price)
+            sold_query = sold_query.filter(Listing.price >= min_price)
+        if max_price is not None:
+            active_query = active_query.filter(Listing.price <= max_price)
+            sold_query = sold_query.filter(Listing.price <= max_price)
+
+        # Order by newest first, active before sold (per D-11)
+        active_listings = active_query.order_by(Listing.created_at.desc()).all()
+        sold_listings = sold_query.order_by(Listing.created_at.desc()).all()
+        listings = active_listings + sold_listings
+
+        # Build result count text (per D-12)
+        count = len(listings)
+        if q:
+            count_text = f'{count} result{"s" if count != 1 else ""} for \u201c{q}\u201d'
+        else:
+            count_text = f'Showing {count} listing{"s" if count != 1 else ""}'
+
+        return render_template('_search_results.html',
+                               listings=listings,
+                               count_text=count_text,
+                               search_query=q)
+
     @app.route('/listing/<int:listing_id>')
     def listing_detail(listing_id):
         listing = db.session.get(Listing, listing_id)
@@ -126,7 +186,10 @@ def init_routes(app):
             db.session.commit()
             flash('Listing created successfully!', 'success')
         else:
-            flash('Please fix the errors in the form.', 'error')
+            for field_name, errors in form.errors.items():
+                label = getattr(form, field_name).label.text
+                for error in errors:
+                    flash(f'{label}: {error}', 'error')
         return redirect(request.referrer or url_for('dashboard'))
 
     @app.route('/edit-listing/<int:listing_id>', methods=['POST'])
@@ -154,7 +217,10 @@ def init_routes(app):
             db.session.commit()
             flash('Listing updated!', 'success')
         else:
-            flash('Please fix the errors in the form.', 'error')
+            for field_name, errors in form.errors.items():
+                label = getattr(form, field_name).label.text
+                for error in errors:
+                    flash(f'{label}: {error}', 'error')
         return redirect(url_for('dashboard'))
 
     @app.route('/delete-listing/<int:listing_id>', methods=['POST'])
