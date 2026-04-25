@@ -311,6 +311,7 @@ def init_routes(app):
 
         if thread_listing_id and thread_with_user:
             # D-05: Show thread view in-place
+            # Verify user is a participant in this conversation
             messages = Message.query.filter_by(
                 listing_id=thread_listing_id
             ).filter(
@@ -319,6 +320,8 @@ def init_routes(app):
                     db.and_(Message.sender_id == thread_with_user, Message.receiver_id == user_id),
                 )
             ).order_by(Message.created_at.asc()).all()
+            if not messages:
+                abort(403)
             listing = db.session.get(Listing, thread_listing_id)
             other_user = db.session.get(User, thread_with_user)
             # D-11: lazy cleanup -- filter out messages from sold listings older than 30 days

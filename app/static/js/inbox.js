@@ -47,10 +47,12 @@ $(document).ready(function () {
                 if (xhr.responseJSON) {
                     if (xhr.responseJSON.errors) {
                         xhr.responseJSON.errors.forEach(function (msg) {
-                            $errors.append('<span class="form-error">' + msg + '</span>');
+                            var $span = $('<span>').addClass('form-error').text(msg);
+                            $errors.append($span);
                         });
                     } else if (xhr.responseJSON.error) {
-                        $errors.append('<span class="form-error">' + xhr.responseJSON.error + '</span>');
+                        var $span = $('<span>').addClass('form-error').text(xhr.responseJSON.error);
+                        $errors.append($span);
                     }
                 }
             }
