@@ -89,6 +89,29 @@ class Listing(db.Model):
     meetup_spot = db.Column(db.String(100), nullable=False)
     image_path = db.Column(db.String(200), nullable=True)
     status = db.Column(db.String(20), default='active', nullable=False)
+    sold_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=_utcnow, nullable=False)
 
     user = db.relationship('User', backref=db.backref('listings', lazy='dynamic'))
+
+
+class Message(db.Model):
+    __tablename__ = 'message'
+
+    id = db.Column(db.Integer, primary_key=True)
+    listing_id = db.Column(db.Integer, db.ForeignKey('listing.id'), nullable=False)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=_utcnow, nullable=False)
+
+    listing = db.relationship('Listing', backref=db.backref('messages', lazy='dynamic'))
+    sender = db.relationship('User', foreign_keys=[sender_id],
+                             backref=db.backref('sent_messages', lazy='dynamic'))
+    receiver = db.relationship('User', foreign_keys=[receiver_id],
+                               backref=db.backref('received_messages', lazy='dynamic'))
+
+    __table_args__ = (
+        db.Index('ix_message_listing_created', 'listing_id', 'created_at'),
+        db.Index('ix_message_receiver_created', 'receiver_id', 'created_at'),
+    )
