@@ -7,7 +7,7 @@ from flask_mail import Message
 from werkzeug.utils import secure_filename
 
 from app import db, mail
-from app.models import User, Listing
+from app.models import User, Listing, _utcnow
 from app.forms import (
     RegistrationForm, LoginForm, OTPForm, ForgotPasswordForm, ResetPasswordForm,
     ListingForm, EditProfileForm,
@@ -232,7 +232,8 @@ def init_routes(app):
             img_path = os.path.join(app.config['UPLOAD_FOLDER'], listing.image_path)
             if os.path.exists(img_path):
                 os.remove(img_path)
-        db.session.delete(listing)
+        listing.status = 'deleted'
+        listing.image_path = None
         db.session.commit()
         flash('Listing deleted.', 'success')
         return redirect(url_for('dashboard'))
@@ -243,6 +244,7 @@ def init_routes(app):
         listing = get_owned_listing_or_403(listing_id)
         if listing.status != 'sold':
             listing.status = 'sold'
+            listing.sold_at = _utcnow()
             db.session.commit()
             flash('Listing marked as sold.', 'success')
         return redirect(url_for('dashboard'))
