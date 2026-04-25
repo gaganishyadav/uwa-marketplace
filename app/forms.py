@@ -137,3 +137,11 @@ class EditProfileForm(FlaskForm):
     display_name = StringField('Display Name', validators=[
         DataRequired(), Length(min=2, max=50)])
     bio = TextAreaField('Bio', validators=[Length(max=500)])
+
+
+class MessageForm(FlaskForm):
+    """Message form for buyer-seller communication (per D-09: max 1000 chars)."""
+    content = TextAreaField('Message', validators=[
+        DataRequired(message='Message cannot be empty.'),
+        Length(max=1000, message='Message must be 1000 characters or fewer.'),
+    ])
