@@ -1,0 +1,24 @@
+{# Message Seller Modal (per D-01, D-10) #}
+<div class="modal-overlay" id="modal-message" role="dialog" aria-modal="true" aria-label="Message Seller">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 class="modal-title">Message Seller</h2>
+            <button class="modal-close" aria-label="Close">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <form id="form-message" method="post" data-listing-id="{{ listing.id }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group">
+                <textarea name="content" id="message-content" class="form-input form-textarea message-textarea"
+                          placeholder="Ask about this item..." maxlength="1000"
+                          aria-label="Message content"></textarea>
+                <div class="char-counter" id="char-counter" aria-live="polite">0/1000</div>
+                <div class="form-errors" id="message-errors" aria-live="polite"></div>
+            </div>
+            <button type="submit" class="btn-primary btn-large" id="btn-send-message" style="width:100%;margin-top:var(--space-md);">
+                Send Message
+            </button>
+        </form>
+    </div>
+</div>
