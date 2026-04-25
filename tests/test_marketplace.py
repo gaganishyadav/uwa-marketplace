@@ -295,7 +295,9 @@ def test_delete_own_listing(verified_client, app):
     assert response.status_code == 302
 
     with app.app_context():
-        assert db.session.get(Listing, lid) is None
+        listing = db.session.get(Listing, lid)
+        assert listing is not None
+        assert listing.status == 'deleted'
 
 
 def test_delete_removes_image(verified_client, app):
