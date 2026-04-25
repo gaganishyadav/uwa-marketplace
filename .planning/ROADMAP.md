@@ -19,7 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Flask Foundation & Authentication** - Project setup, user registration, login, logout
 - [ ] **Phase 2: Marketplace Core** - Listing CRUD, public gallery, category management
 - [x] **Phase 3: Search & Discovery** - AJAX search, filtering, category UI
-- [ ] **Phase 4: Messaging System** - Buyer-seller messaging with inbox
+- [x] **Phase 4: Messaging System** - Buyer-seller messaging with inbox
 - [ ] **Phase 5: Campus Map Integration** - Leaflet.js integration with meetup spot selection
 - [ ] **Phase 6: Security Hardening** - CSRF, password hashing, session security, input validation
 - [ ] **Phase 7: Testing Suite** - Unit tests, Selenium tests, coverage
@@ -87,9 +87,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 04-01-PLAN.md -- Data layer: Message model, sold_at field, soft-delete refactor, MessageForm, migration
-- [ ] 04-02-PLAN.md -- Messaging routes and send message flow: send_message, inbox, thread routes, message modal, nav link
-- [ ] 04-03-PLAN.md -- Inbox UI and tests: inbox.html template, chat bubble CSS, unit tests for MSG-01/02/03
+- [x] 04-01-PLAN.md -- Data layer: Message model, sold_at field, soft-delete refactor, MessageForm, migration
+- [x] 04-02-PLAN.md -- Messaging routes and send message flow: send_message, inbox, thread routes, message modal, nav link
+- [x] 04-03-PLAN.md -- Inbox UI and tests: inbox.html template, chat bubble CSS, unit tests for MSG-01/02/03
 
 **UI hint**: yes
 
@@ -139,7 +139,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 1. Flask Foundation & Authentication | 2/2 | Complete | 2026-04-04 |
 | 2. Marketplace Core | 0/0 | Not started | - |
 | 3. Search & Discovery | 3/3 | Complete | 2026-04-20 |
-| 4. Messaging System | 0/3 | Planning complete | - |
+| 4. Messaging System | 3/3 | Complete | 2026-04-25 |
 | 5. Campus Map Integration | 0/0 | Not started | - |
 | 6. Security Hardening | 0/0 | Not started | - |
 | 7. Testing Suite | 0/0 | Not started | - |
