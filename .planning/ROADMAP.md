@@ -19,8 +19,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Flask Foundation & Authentication** - Project setup, user registration, login, logout
 - [ ] **Phase 2: Marketplace Core** - Listing CRUD, public gallery, category management
 - [x] **Phase 3: Search & Discovery** - AJAX search, filtering, category UI
-- [ ] **Phase 4: Campus Map Integration** - Leaflet.js integration with meetup spot selection
-- [ ] **Phase 5: Messaging System** - Buyer-seller messaging with inbox
+- [ ] **Phase 4: Messaging System** - Buyer-seller messaging with inbox
+- [ ] **Phase 5: Campus Map Integration** - Leaflet.js integration with meetup spot selection
 - [ ] **Phase 6: Security Hardening** - CSRF, password hashing, session security, input validation
 - [ ] **Phase 7: Testing Suite** - Unit tests, Selenium tests, coverage
 
@@ -75,20 +75,7 @@ Plans:
 
 **UI hint**: yes
 
-### Phase 4: Campus Map Integration
-**Goal**: Users can select and view campus meetup locations using interactive map
-**Depends on**: Phase 2
-**Requirements**: MAP-01, MAP-02, MAP-03, MAP-04
-**Success Criteria** (what must be TRUE):
-  1. Seller can select predefined meetup spot when creating listing
-  2. Buyer sees selected meetup spot pinned on interactive campus map
-  3. Map displays all 7 UWA campus locations (libraries, guild, oak lawn, etc.)
-  4. Map is responsive and loads without blocking page render
-**Plans**: TBD
-
-**UI hint**: yes
-
-### Phase 5: Messaging System
+### Phase 4: Messaging System
 **Goal**: Buyers and sellers can communicate about listings
 **Depends on**: Phase 2
 **Requirements**: MSG-01, MSG-02, MSG-03
@@ -97,6 +84,24 @@ Plans:
   2. User can view message thread for each listing
   3. User can view inbox with all conversations
   4. Messages show sender, timestamp, and content in readable format
+**Plans**: 3 plans
+
+Plans:
+- [ ] 04-01-PLAN.md -- Data layer: Message model, sold_at field, soft-delete refactor, MessageForm, migration
+- [ ] 04-02-PLAN.md -- Messaging routes and send message flow: send_message, inbox, thread routes, message modal, nav link
+- [ ] 04-03-PLAN.md -- Inbox UI and tests: inbox.html template, chat bubble CSS, unit tests for MSG-01/02/03
+
+**UI hint**: yes
+
+### Phase 5: Campus Map Integration
+**Goal**: Users can select and view campus meetup locations using interactive map
+**Depends on**: Phase 2
+**Requirements**: MAP-01, MAP-02, MAP-03, MAP-04
+**Success Criteria** (what must be TRUE):
+  1. Seller can select predefined meetup spot when creating listing
+  2. Buyer sees selected meetup spot pinned on interactive campus map
+  3. Map displays all 7 UWA campus locations (libraries, guild, oak lawn, etc.)
+  4. Map is responsive and loads without blocking page render
 **Plans**: TBD
 
 **UI hint**: yes
@@ -134,11 +139,11 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 1. Flask Foundation & Authentication | 2/2 | Complete | 2026-04-04 |
 | 2. Marketplace Core | 0/0 | Not started | - |
 | 3. Search & Discovery | 3/3 | Complete | 2026-04-20 |
-| 4. Campus Map Integration | 0/0 | Not started | - |
-| 5. Messaging System | 0/0 | Not started | - |
+| 4. Messaging System | 0/3 | Planning complete | - |
+| 5. Campus Map Integration | 0/0 | Not started | - |
 | 6. Security Hardening | 0/0 | Not started | - |
 | 7. Testing Suite | 0/0 | Not started | - |
 
 ---
 
-*Last updated: 2026-04-20*
+*Last updated: 2026-04-25*
