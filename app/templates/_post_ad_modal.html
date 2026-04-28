@@ -2,7 +2,7 @@
 <div class="modal-overlay" id="modal-post-ad">
     <div class="modal">
         <div class="modal-header">
-            <h2 class="modal-title">Post New Ad</h2>
+            <h2 class="modal-title">List an Item</h2>
             <button class="modal-close" aria-label="Close">
                 <span class="material-symbols-outlined">close</span>
             </button>
@@ -27,15 +27,20 @@
                 </div>
             </div>
 
-            <div class="form-row">
-                <div class="form-group">
-                    {{ listing_form.price.label(class="form-label") }}
-                    {{ listing_form.price(class="form-input", id="ad-price", placeholder="0.00") }}
+            <div class="form-group">
+                {{ listing_form.price.label(class="form-label") }}
+                {{ listing_form.price(class="form-input", id="ad-price", placeholder="0.00") }}
+            </div>
+
+            <div class="form-group">
+                {{ listing_form.meetup_spot.label(class="form-label") }}
+                <div class="building-search-wrapper">
+                    <input type="text" class="form-input" id="building-search" autocomplete="off" placeholder="Search or click a building on the map…">
+                    <ul class="building-suggestions" id="building-suggestions" hidden></ul>
                 </div>
-                <div class="form-group">
-                    {{ listing_form.meetup_spot.label(class="form-label") }}
-                    {{ listing_form.meetup_spot(class="form-input form-select", id="ad-location") }}
-                </div>
+                {{ listing_form.meetup_spot(class="form-input", id="ad-location", type="hidden") }}
+                <div class="meetup-map-container" id="meetup-map"></div>
+                <p class="meetup-map-hint">Click a building to set your meetup spot</p>
             </div>
 
             <div class="form-group">

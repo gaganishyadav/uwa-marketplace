@@ -7,7 +7,7 @@
         {% if session.get('user_id') %}
         <div class="nav-user">
             <a href="{{ url_for('gallery') }}" class="nav-link">Browse</a>
-            <button class="btn-primary btn-post-nav" id="nav-post-btn">+ Post Ad</button>
+            <button class="btn-primary btn-post-nav" id="nav-post-btn">+ List an Item</button>
             <div class="nav-avatar-wrapper">
                 <button class="nav-avatar" id="nav-avatar-btn" aria-expanded="false" aria-haspopup="true">
                     {% if user %}{{ user.display_name[0] | upper }}{% else %}U{% endif %}
@@ -26,7 +26,7 @@
         {% else %}
         <div class="nav-actions">
             <a href="{{ url_for('gallery') }}" class="nav-link">Browse</a>
-            <a href="{{ url_for('auth') }}" class="btn-primary btn-post-nav">+ Post Ad</a>
+            <a href="{{ url_for('auth') }}" class="btn-primary btn-post-nav">+ List an Item</a>
             <a href="{{ url_for('auth') }}" class="btn-secondary">Log In</a>
             <a href="{{ url_for('auth', tab='signup') }}" class="btn-primary">Sign Up</a>
         </div>
