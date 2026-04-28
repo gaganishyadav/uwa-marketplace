@@ -44,8 +44,8 @@ class RegistrationForm(FlaskForm):
 
     def validate_email(self, field):
         """Only accept @student.uwa.edu.au addresses (per D-09)."""
-        if not field.data.endswith('@student.uwa.edu.au'):
-            raise ValidationError('Please use your UWA student email address.')
+        if not field.data.endswith('uwa.edu.au'):
+            raise ValidationError('Please use your UWA email address.')
 
     def validate_confirm_password(self, field):
         """Passwords must match."""
@@ -113,24 +113,20 @@ CATEGORIES = [('Textbooks', 'Textbooks'), ('Electronics', 'Electronics'),
 CONDITIONS = [('New', 'New'), ('Like New', 'Like New'),
               ('Good', 'Good'), ('Fair', 'Fair')]
 
-MEETUP_SPOTS = [('Reid Library', 'Reid Library'),
-                ('Barry J. Marshall Library', 'Barry J. Marshall Library'),
-                ('Student Guild', 'Student Guild'),
-                ('Winthrop Hall', 'Winthrop Hall'),
-                ('Oak Lawn', 'Oak Lawn')]
-
-
 class ListingForm(FlaskForm):
     title = StringField('Title', validators=[
         DataRequired(), Length(min=5, max=200)])
     category = SelectField('Category', choices=CATEGORIES, validators=[DataRequired()])
     condition = SelectField('Condition', choices=CONDITIONS, validators=[DataRequired()])
     price = FloatField('Price', validators=[InputRequired(), NumberRange(min=0, message='Price must be a non-negative number.')])
-    stock = IntegerField('How many do you have? (private — only you see this)', default=1, validators=[
+    stock = IntegerField('Quantity', default=1, validators=[
         InputRequired(), NumberRange(min=1, message='Must be at least 1.')])
     description = TextAreaField('Description', validators=[
         DataRequired(), Length(min=10, max=2000)])
-    meetup_spot = SelectField('Meetup Spot', choices=MEETUP_SPOTS, validators=[DataRequired()])
+    meetup_spot = StringField('Meetup Spot', validators=[
+        DataRequired(message='Please select a meetup location.'),
+        Length(max=200)
+    ])
     image = FileField('Photo', validators=[
         FileAllowed(['jpg', 'jpeg', 'png'], 'JPG or PNG images only!')])
 

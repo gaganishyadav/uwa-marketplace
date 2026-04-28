@@ -2,7 +2,7 @@
 <div class="modal-overlay" id="modal-post-ad">
     <div class="modal">
         <div class="modal-header">
-            <h2 class="modal-title">Post New Ad</h2>
+            <h2 class="modal-title">List an Item</h2>
             <button class="modal-close" aria-label="Close">
                 <span class="material-symbols-outlined">close</span>
             </button>
@@ -35,16 +35,18 @@
                 <div class="form-group">
                     {{ listing_form.stock.label(class="form-label") }}
                     {{ listing_form.stock(class="form-input", id="ad-stock", placeholder="1", min="1") }}
-                    <small style="color:var(--color-outline);font-size:0.7rem;">
-                        <span class="material-symbols-outlined" style="font-size:0.8rem;vertical-align:middle;">sticky_note_2</span>
-                        Never shown to buyers. Use it as your own reminder.
-                    </small>
                 </div>
             </div>
 
             <div class="form-group">
                 {{ listing_form.meetup_spot.label(class="form-label") }}
-                {{ listing_form.meetup_spot(class="form-input form-select", id="ad-location") }}
+                <div class="building-search-wrapper">
+                    <input type="text" class="form-input" id="building-search" autocomplete="off" placeholder="Search or click a building on the map…">
+                    <ul class="building-suggestions" id="building-suggestions" hidden></ul>
+                </div>
+                {{ listing_form.meetup_spot(class="form-input", id="ad-location", type="hidden") }}
+                <div class="meetup-map-container" id="meetup-map"></div>
+                <p class="meetup-map-hint">Click a building to set your meetup spot</p>
             </div>
 
             <div class="form-group">

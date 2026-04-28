@@ -187,7 +187,10 @@ def init_routes(app):
             db.session.commit()
             flash('Listing created successfully!', 'success')
         else:
-            flash('Please fix the errors in the form.', 'error')
+            for field_name, errors in form.errors.items():
+                label = getattr(form, field_name).label.text
+                for error in errors:
+                    flash(f'{label}: {error}', 'error')
         return redirect(request.referrer or url_for('dashboard'))
 
     @app.route('/edit-listing/<int:listing_id>', methods=['POST'])
@@ -216,7 +219,10 @@ def init_routes(app):
             db.session.commit()
             flash('Listing updated!', 'success')
         else:
-            flash('Please fix the errors in the form.', 'error')
+            for field_name, errors in form.errors.items():
+                label = getattr(form, field_name).label.text
+                for error in errors:
+                    flash(f'{label}: {error}', 'error')
         return redirect(url_for('dashboard'))
 
     @app.route('/delete-listing/<int:listing_id>', methods=['POST'])
