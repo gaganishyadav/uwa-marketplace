@@ -74,6 +74,15 @@ $(document).ready(function () {
         initMeetupMap(meetupSpot);
     };
 
+    // --- Open Message Seller Modal ---
+    $('#btn-message-seller').on('click', function () {
+        // Reset form
+        $('#message-content').val('');
+        $('#char-counter').text('0/1000');
+        $('#message-errors').empty();
+        openModal('#modal-message');
+    });
+
     // ─── File Upload Preview ────────────────────────────────────────────────
     $('#ad-image').on('change', function () {
         var file = this.files[0];

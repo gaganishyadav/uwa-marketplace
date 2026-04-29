@@ -1,16 +1,17 @@
 import os
 import uuid
+from datetime import timedelta
 from functools import wraps
 
-from flask import abort, redirect, url_for, session, render_template, flash, request, current_app
+from flask import abort, redirect, url_for, session, render_template, flash, request, current_app, jsonify
 from flask_mail import Message
 from werkzeug.utils import secure_filename
 
 from app import db, mail
-from app.models import User, Listing
+from app.models import User, Listing, Message, _utcnow
 from app.forms import (
     RegistrationForm, LoginForm, OTPForm, ForgotPasswordForm, ResetPasswordForm,
-    ListingForm, EditProfileForm,
+    ListingForm, EditProfileForm, MessageForm,
 )
 
 
@@ -232,7 +233,8 @@ def init_routes(app):
             img_path = os.path.join(app.config['UPLOAD_FOLDER'], listing.image_path)
             if os.path.exists(img_path):
                 os.remove(img_path)
-        db.session.delete(listing)
+        listing.status = 'deleted'
+        listing.image_path = None
         db.session.commit()
         flash('Listing deleted.', 'success')
         return redirect(url_for('dashboard'))
@@ -243,6 +245,7 @@ def init_routes(app):
         listing = get_owned_listing_or_403(listing_id)
         if listing.status != 'sold':
             listing.status = 'sold'
+            listing.sold_at = _utcnow()
             db.session.commit()
             flash('Listing marked as sold.', 'success')
         return redirect(url_for('dashboard'))
@@ -258,6 +261,146 @@ def init_routes(app):
             db.session.commit()
             flash('Profile updated!', 'success')
         return redirect(url_for('dashboard'))
+
+    # ------------------------------------------------------------------
+    # Messaging routes
+    # ------------------------------------------------------------------
+
+    @app.route('/send-message/<int:listing_id>', methods=['POST'])
+    @email_verified_required
+    def send_message(listing_id):
+        """Send a message to the listing owner (per D-01, D-09, D-10)."""
+        listing = db.session.get(Listing, listing_id)
+        if not listing:
+            return jsonify({'error': 'Listing not found.'}), 404
+        # D-09: block self-messaging
+        if listing.user_id == session['user_id']:
+            abort(403)
+        # D-11: block messages on sold listings
+        if listing.status == 'sold':
+            return jsonify({'error': 'This listing has been sold. Messaging is disabled.'}), 400
+        # D-12: block messages on deleted listings
+        if listing.status == 'deleted':
+            return jsonify({'error': 'Listing not found.'}), 404
+
+        form = MessageForm()
+        if form.validate_on_submit():
+            msg = Message(
+                listing_id=listing_id,
+                sender_id=session['user_id'],
+                receiver_id=listing.user_id,
+                content=form.content.data,
+            )
+            db.session.add(msg)
+            db.session.commit()
+            return jsonify({'success': True, 'redirect': url_for('inbox', thread=listing_id, with_user=listing.user_id)})
+        # D-10: inline validation errors (return as JSON for AJAX)
+        errors = []
+        for field_name, field_errors in form.errors.items():
+            for error in field_errors:
+                errors.append(error)
+        return jsonify({'errors': errors}), 400
+
+    @app.route('/inbox')
+    @email_verified_required
+    def inbox():
+        """Inbox view: conversation list or thread view (per D-05, D-06, D-08)."""
+        user_id = session['user_id']
+        thread_listing_id = request.args.get('thread', type=int)
+        thread_with_user = request.args.get('with_user', type=int)
+
+        if thread_listing_id and thread_with_user:
+            # D-05: Show thread view in-place
+            # Verify user is a participant in this conversation
+            messages = Message.query.filter_by(
+                listing_id=thread_listing_id
+            ).filter(
+                db.or_(
+                    db.and_(Message.sender_id == user_id, Message.receiver_id == thread_with_user),
+                    db.and_(Message.sender_id == thread_with_user, Message.receiver_id == user_id),
+                )
+            ).order_by(Message.created_at.asc()).all()
+            if not messages:
+                abort(403)
+            listing = db.session.get(Listing, thread_listing_id)
+            other_user = db.session.get(User, thread_with_user)
+            # D-11: lazy cleanup -- filter out messages from sold listings older than 30 days
+            if listing and listing.status == 'sold' and listing.sold_at:
+                cutoff = _utcnow() - timedelta(days=30)
+                if listing.sold_at < cutoff:
+                    # Auto-delete expired messages for this sold listing
+                    Message.query.filter_by(listing_id=thread_listing_id).delete()
+                    db.session.commit()
+                    return redirect(url_for('inbox'))
+            return render_template('inbox.html', mode='thread', messages=messages,
+                                   thread_listing=listing, other_user=other_user,
+                                   other_user_id=thread_with_user,
+                                   current_user_id=user_id,
+                                   message_form=MessageForm())
+        # Default: show conversation list (D-06, D-08)
+        from sqlalchemy import func, case, and_
+        other_user_expr = case(
+            (Message.sender_id == user_id, Message.receiver_id),
+            else_=Message.sender_id
+        ).label('other_user_id')
+        latest = db.session.query(
+            Message.listing_id,
+            other_user_expr,
+            func.max(Message.created_at).label('last_at')
+        ).filter(
+            db.or_(Message.sender_id == user_id, Message.receiver_id == user_id)
+        ).filter(
+            Listing.status.in_(['active', 'sold', 'deleted'])
+        ).join(
+            Listing, Message.listing_id == Listing.id
+        ).group_by(Message.listing_id, other_user_expr).subquery()
+
+        conversations = db.session.query(Message).join(
+            latest,
+            and_(
+                Message.listing_id == latest.c.listing_id,
+                Message.created_at == latest.c.last_at
+            )
+        ).order_by(Message.created_at.desc()).all()
+
+        return render_template('inbox.html', mode='list', conversations=conversations,
+                               current_user_id=user_id)
+
+    @app.route('/thread-reply/<int:listing_id>/<int:with_user_id>', methods=['POST'])
+    @email_verified_required
+    def thread_reply(listing_id, with_user_id):
+        """Reply within a message thread (per D-05)."""
+        listing = db.session.get(Listing, listing_id)
+        if not listing or listing.status == 'deleted':
+            abort(404)
+        if listing.status == 'sold':
+            flash('This listing has been sold. Messaging is disabled.', 'error')
+            return redirect(url_for('inbox', thread=listing_id, with_user=with_user_id))
+        # Block self-messaging
+        if with_user_id == session['user_id']:
+            abort(403)
+        # Verify user is part of this conversation
+        user_id = session['user_id']
+        existing = Message.query.filter_by(listing_id=listing_id).filter(
+            db.or_(
+                db.and_(Message.sender_id == user_id, Message.receiver_id == with_user_id),
+                db.and_(Message.sender_id == with_user_id, Message.receiver_id == user_id),
+            )
+        ).first()
+        if not existing:
+            abort(403)
+
+        form = MessageForm()
+        if form.validate_on_submit():
+            msg = Message(
+                listing_id=listing_id,
+                sender_id=user_id,
+                receiver_id=with_user_id,
+                content=form.content.data,
+            )
+            db.session.add(msg)
+            db.session.commit()
+        return redirect(url_for('inbox', thread=listing_id, with_user=with_user_id))
 
     # ------------------------------------------------------------------
     # Auth routes

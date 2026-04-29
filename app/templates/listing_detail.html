@@ -51,8 +51,8 @@
                             <button type="submit" class="btn-secondary" style="color:#c62828;">Delete</button>
                         </form>
                     {% elif user %}
-                        {# Buyer view: Message Seller button (D-09, deferred to Phase 5) #}
-                        <button class="btn-primary" disabled title="Coming in a future update">Message Seller</button>
+                        {# Buyer view: Message Seller button (D-09, D-01) #}
+                        <button class="btn-primary" id="btn-message-seller">Message Seller</button>
                     {% else %}
                         {# Not logged in #}
                         <a href="{{ url_for('auth') }}" class="btn-primary">Log in to message seller</a>
@@ -73,4 +73,8 @@
         </div>
     </div>
 </section>
+{% include '_message_modal.html' %}
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/inbox.js') }}" defer></script>
 {% endblock %}
