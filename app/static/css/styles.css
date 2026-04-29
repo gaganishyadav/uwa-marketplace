@@ -120,6 +120,18 @@ body {
 .nav-actions {
     display: flex;
     gap: var(--space-sm);
+    align-items: center;
+}
+
+.nav-actions .nav-link {
+    padding: 0.625rem 0.75rem;
+    border-radius: var(--radius-md);
+    transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.nav-actions .nav-link:hover {
+    background: var(--color-surface-low);
+    color: var(--color-primary);
 }
 
 /* Buttons */
@@ -784,7 +796,7 @@ section {
     width: 100%;
     padding: var(--space-lg) var(--space-lg);
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     background: rgba(217, 218, 219, 0.3);
     position: relative;
@@ -815,26 +827,6 @@ section {
     color: var(--color-on-surface-variant);
     opacity: 0.6;
     margin-top: 4px;
-}
-
-.auth-page-footer-links {
-    display: flex;
-    gap: var(--space-md);
-}
-
-.auth-page-footer-link {
-    font-family: var(--font-label);
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    text-decoration: none;
-    color: var(--color-on-surface-variant);
-    transition: color var(--transition-fast);
-}
-
-.auth-page-footer-link:hover {
-    color: var(--color-secondary);
 }
 
 /* Auth Page Responsive */
