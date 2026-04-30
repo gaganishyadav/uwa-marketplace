@@ -30,6 +30,9 @@
                 <!-- Login Form -->
                 <form class="auth-form {{ 'active' if active_tab == 'login' }}" id="form-login" action="{{ url_for('login') }}" method="POST">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    {% if login_error %}
+                    <div class="auth-error" role="alert">{{ login_error }}</div>
+                    {% endif %}
                     <div class="form-group">
                         <label class="form-label" for="login-email">University Email</label>
                         <div class="form-input-wrapper">
@@ -66,6 +69,9 @@
                                 placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;"
                                 required
                             >
+                            <button type="button" class="password-toggle" aria-label="Show password" onclick="togglePasswordVisibility(this)">
+                                <span class="material-symbols-outlined">visibility</span>
+                            </button>
                             <div class="form-input-accent"></div>
                         </div>
                         {% if login_form.password.errors %}
@@ -88,6 +94,9 @@
                 <!-- Sign Up Form -->
                 <form class="auth-form {{ 'active' if active_tab == 'signup' }}" id="form-signup" action="{{ url_for('register') }}" method="POST">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    {% if register_error %}
+                    <div class="auth-error" role="alert">{{ register_error }}</div>
+                    {% endif %}
                     <div class="form-group">
                         <label class="form-label" for="signup-display-name">Display Name</label>
                         <div class="form-input-wrapper">
@@ -144,6 +153,9 @@
                                 required
                                 minlength="8"
                             >
+                            <button type="button" class="password-toggle" aria-label="Show password" onclick="togglePasswordVisibility(this)">
+                                <span class="material-symbols-outlined">visibility</span>
+                            </button>
                             <div class="form-input-accent"></div>
                         </div>
                         {% if register_form.password.errors %}
@@ -167,6 +179,9 @@
                                 required
                                 minlength="8"
                             >
+                            <button type="button" class="password-toggle" aria-label="Show password" onclick="togglePasswordVisibility(this)">
+                                <span class="material-symbols-outlined">visibility</span>
+                            </button>
                             <div class="form-input-accent"></div>
                         </div>
                         {% if register_form.confirm_password.errors %}
