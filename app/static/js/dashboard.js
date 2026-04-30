@@ -47,9 +47,8 @@ $(document).ready(function () {
         openModal('#modal-edit-profile');
     });
 
-    // ─── Open Post Ad Modal ─────────────────────────────────────────────────
+    // ─── Open List an Item Modal ────────────────────────────────────────────
     $('#btn-post-ad, #nav-post-btn').on('click', function () {
-        $('#modal-post-ad .modal-title').text('Post New Ad');
         // Reset modal to "List an Item" state
         $('#modal-post-ad .modal-title').text('List an Item');
         $('#form-post-ad')[0].reset();

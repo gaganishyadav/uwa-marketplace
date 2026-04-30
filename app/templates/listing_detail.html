@@ -73,6 +73,12 @@
         </div>
     </div>
 </section>
+
+{# ---- Post / Edit Listing Modal (needed for nav "+ List an Item" button, fixes #23) ---- #}
+{% if user %}
+{% include '_post_ad_modal.html' %}
+{% endif %}
+
 {% include '_message_modal.html' %}
 {% endblock %}
 {% block scripts %}
