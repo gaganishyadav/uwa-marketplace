@@ -11,3 +11,7 @@ instance/
 __pycache__/
 *.pyc
 YuxingZhou_Development_Log.md
+YuxingZhou_CITS5505_Development & Review_Log.md
+
+# User-uploaded listing photos (per-developer, not source)
+app/static/uploads/

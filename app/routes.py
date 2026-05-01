@@ -429,11 +429,11 @@ def init_routes(app):
         form = RegistrationForm()
         if form.validate_on_submit():
             if form.validate_email_duplicate():
-                flash('An account with this email already exists.', 'error')
                 return render_template('auth.html',
                                        login_form=LoginForm(),
                                        register_form=form,
-                                       active_tab='signup')
+                                       active_tab='signup',
+                                      register_error= 'An account with this email already exists.')
             user = User(display_name=form.display_name.data, email=form.email.data)
             user.set_password(form.password.data)
             otp = user.generate_otp()
@@ -466,6 +466,7 @@ def init_routes(app):
     @app.route('/login', methods=['POST'])
     def login():
         form = LoginForm()
+        login_error = None
         if form.validate_on_submit():
             user = User.query.filter_by(email=form.email.data).first()
             if user and user.check_password(form.password.data):
@@ -474,11 +475,12 @@ def init_routes(app):
                 if not user.email_verified:
                     return redirect(url_for('verify_otp'))
                 return redirect(url_for('gallery'))
-            flash('Invalid email or password.', 'error')
+            login_error = 'Invalid email or password.'
         return render_template('auth.html',
                                login_form=form,
                                register_form=RegistrationForm(),
-                               active_tab='login')
+                               active_tab='login',
+                               login_error=login_error)
 
     @app.route('/verify-otp', methods=['GET', 'POST'])
     @login_required
