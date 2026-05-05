@@ -5,8 +5,8 @@
 This roadmap delivers a hyper-local student marketplace for UWA, progressing from foundation through authentication, marketplace features, search, messaging, and campus map integration. The project is organized into 7 phases aligned with three academic milestones, ensuring students can securely trade goods with safe campus meetups.
 
 **Milestone 1 (Phases 1-2):** Foundation + Basic Marketplace
-**Milestone 2 (Phases 3-5):** Discovery + Messaging
-**Milestone 3 (Phases 6-7):** Security + Testing + Polish
+**Milestone 2 (Phases 3-4):** Discovery + Messaging
+**Milestone 3 (Phases 5-6):** Security + Testing + Polish
 
 ## Phases
 
@@ -20,9 +20,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 2: Marketplace Core** - Listing CRUD, public gallery, category management
 - [x] **Phase 3: Search & Discovery** - AJAX search, filtering, category UI
 - [x] **Phase 4: Messaging System** - Buyer-seller messaging with inbox
-- [ ] **Phase 5: Campus Map Integration** - Leaflet.js integration with meetup spot selection
-- [ ] **Phase 6: Security Hardening** - CSRF, password hashing, session security, input validation
-- [ ] **Phase 7: Testing Suite** - Unit tests, Selenium tests, coverage
+- [ ] **Phase 5: Security Hardening** - CSRF, password hashing, session security, input validation
+- [ ] **Phase 6: Testing Suite** - Unit tests, Selenium tests, coverage
 
 ## Phase Details
 
@@ -93,20 +92,7 @@ Plans:
 
 **UI hint**: yes
 
-### Phase 5: Campus Map Integration
-**Goal**: Users can select and view campus meetup locations using interactive map
-**Depends on**: Phase 2
-**Requirements**: MAP-01, MAP-02, MAP-03, MAP-04
-**Success Criteria** (what must be TRUE):
-  1. Seller can select predefined meetup spot when creating listing
-  2. Buyer sees selected meetup spot pinned on interactive campus map
-  3. Map displays all 7 UWA campus locations (libraries, guild, oak lawn, etc.)
-  4. Map is responsive and loads without blocking page render
-**Plans**: TBD
-
-**UI hint**: yes
-
-### Phase 6: Security Hardening
+### Phase 5: Security Hardening
 **Goal**: Platform protects against common web vulnerabilities and securely stores credentials
 **Depends on**: Phase 1, Phase 2
 **Requirements**: SEC-01, SEC-02, SEC-03, SEC-04, SEC-05
@@ -118,7 +104,7 @@ Plans:
   5. Sensitive configuration (SECRET_KEY) stored in .env file
 **Plans**: TBD
 
-### Phase 7: Testing Suite
+### Phase 6: Testing Suite
 **Goal**: Codebase has comprehensive test coverage for models, auth, and user journeys
 **Depends on**: Phase 1, Phase 2, Phase 3
 **Requirements**: TEST-01, TEST-02, TEST-03, TEST-04, TEST-05, TEST-06
@@ -132,17 +118,16 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Flask Foundation & Authentication | 2/2 | Complete | 2026-04-04 |
-| 2. Marketplace Core | 0/0 | Not started | - |
+| 2. Marketplace Core | 3/3 | Complete | - |
 | 3. Search & Discovery | 3/3 | Complete | 2026-04-20 |
 | 4. Messaging System | 3/3 | Complete | 2026-04-25 |
-| 5. Campus Map Integration | 0/0 | Not started | - |
-| 6. Security Hardening | 0/0 | Not started | - |
-| 7. Testing Suite | 0/0 | Not started | - |
+| 5. Security Hardening | 0/0 | Not started | - |
+| 6. Testing Suite | 0/0 | Not started | - |
 
 ---
 
