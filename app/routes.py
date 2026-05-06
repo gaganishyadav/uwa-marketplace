@@ -186,7 +186,7 @@ def init_routes(app):
             abort(404)
         user = db.session.get(User, session['user_id']) if 'user_id' in session else None
         listing_form = ListingForm()
-        return render_template('listing_detail.html', listing=listing, current_user=user,
+        return render_template('listing_detail.html', listing=listing, user=user,
                                listing_form=listing_form)
 
     @app.route('/dashboard')
@@ -467,7 +467,7 @@ def init_routes(app):
                                        login_form=LoginForm(),
                                        register_form=form,
                                        active_tab='signup',
-                                      register_error= 'An account with this email already exists.')
+                                       register_error='An account with this email already exists.')
             user = User(display_name=form.display_name.data, email=form.email.data)
             user.set_password(form.password.data)
             otp = user.generate_otp()
