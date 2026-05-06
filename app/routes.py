@@ -110,9 +110,11 @@ def init_routes(app):
         sold_listings = Listing.query.filter_by(status='sold').order_by(
             Listing.created_at.desc()).all()
         listing_form = ListingForm()
+        user = db.session.get(User, session['user_id']) if 'user_id' in session else None
         return render_template('gallery.html',
                                listings=featured_listings + active_listings + sold_listings,
-                               listing_form=listing_form)
+                               listing_form=listing_form,
+                               user=user)
 
     @app.route('/api/search')
     def api_search():
@@ -170,10 +172,12 @@ def init_routes(app):
         else:
             count_text = f'Showing {count} listing{"s" if count != 1 else ""}'
 
+        user = db.session.get(User, session['user_id']) if 'user_id' in session else None
         return render_template('_search_results.html',
                                listings=listings,
                                count_text=count_text,
-                               search_query=q)
+                               search_query=q,
+                               user=user)
 
     @app.route('/listing/<int:listing_id>')
     def listing_detail(listing_id):
@@ -181,7 +185,9 @@ def init_routes(app):
         if not listing or listing.status == 'deleted':
             abort(404)
         user = db.session.get(User, session['user_id']) if 'user_id' in session else None
-        return render_template('listing_detail.html', listing=listing)
+        listing_form = ListingForm()
+        return render_template('listing_detail.html', listing=listing, current_user=user,
+                               listing_form=listing_form)
 
     @app.route('/dashboard')
     @email_verified_required
@@ -457,11 +463,11 @@ def init_routes(app):
         form = RegistrationForm()
         if form.validate_on_submit():
             if form.validate_email_duplicate():
-                flash('An account with this email already exists.', 'error')
                 return render_template('auth.html',
                                        login_form=LoginForm(),
                                        register_form=form,
-                                       active_tab='signup')
+                                       active_tab='signup',
+                                      register_error= 'An account with this email already exists.')
             user = User(display_name=form.display_name.data, email=form.email.data)
             user.set_password(form.password.data)
             otp = user.generate_otp()
@@ -494,6 +500,7 @@ def init_routes(app):
     @app.route('/login', methods=['POST'])
     def login():
         form = LoginForm()
+        login_error = None
         if form.validate_on_submit():
             user = User.query.filter_by(email=form.email.data).first()
             if user and user.check_password(form.password.data):
@@ -502,11 +509,12 @@ def init_routes(app):
                 if not user.email_verified:
                     return redirect(url_for('verify_otp'))
                 return redirect(url_for('gallery'))
-            flash('Invalid email or password.', 'error')
+            login_error = 'Invalid email or password.'
         return render_template('auth.html',
                                login_form=form,
                                register_form=RegistrationForm(),
-                               active_tab='login')
+                               active_tab='login',
+                               login_error=login_error)
 
     @app.route('/verify-otp', methods=['GET', 'POST'])
     @login_required

@@ -13,6 +13,31 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="stylesheet" href="https://api.mazemap.com/js/v2.2.6/mazemap.min.css" />
     <script src="https://api.mazemap.com/js/v2.2.6/mazemap.min.js" charset="utf-8"></script>
+    <script>
+        // Show/hide password — used by inline onclick on .password-toggle buttons.
+        // All toggles within the same <form> sync (e.g. Password + Confirm Password).
+        function togglePasswordVisibility(btn) {
+            function findInput(b) {
+                var i = b.previousElementSibling;
+                while (i && i.tagName !== 'INPUT') i = i.previousElementSibling;
+                return i;
+            }
+            var clicked = findInput(btn);
+            if (!clicked) return;
+            var newType = clicked.type === 'password' ? 'text' : 'password';
+            var newIcon = newType === 'password' ? 'visibility' : 'visibility_off';
+            var newLabel = newType === 'password' ? 'Show password' : 'Hide password';
+            var scope = btn.closest('form') || document;
+            scope.querySelectorAll('.password-toggle').forEach(function (b) {
+                var input = findInput(b);
+                if (!input) return;
+                input.type = newType;
+                var icon = b.querySelector('.material-symbols-outlined');
+                if (icon) icon.textContent = newIcon;
+                b.setAttribute('aria-label', newLabel);
+            });
+        }
+    </script>
     {% block extra_head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
