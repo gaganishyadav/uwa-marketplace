@@ -2,11 +2,11 @@
 
 ## Overview
 
-This roadmap delivers a hyper-local student marketplace for UWA, progressing from foundation through authentication, marketplace features, search, messaging, and campus map integration. The project is organized into 7 phases aligned with three academic milestones, ensuring students can securely trade goods with safe campus meetups.
+This roadmap delivers a hyper-local student marketplace for UWA, progressing from foundation through authentication, marketplace features, search, messaging, and admin controls. The project is organized into 7 phases aligned with three academic milestones, ensuring students can securely trade goods on campus.
 
 **Milestone 1 (Phases 1-2):** Foundation + Basic Marketplace
 **Milestone 2 (Phases 3-4):** Discovery + Messaging
-**Milestone 3 (Phases 5-6):** Security + Testing + Polish
+**Milestone 3 (Phases 5-7):** Security + Testing + Admin + Polish
 
 ## Phases
 
@@ -20,8 +20,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 2: Marketplace Core** - Listing CRUD, public gallery, category management
 - [x] **Phase 3: Search & Discovery** - AJAX search, filtering, category UI
 - [x] **Phase 4: Messaging System** - Buyer-seller messaging with inbox
-- [ ] **Phase 5: Security Hardening** - CSRF, password hashing, session security, input validation
-- [ ] **Phase 6: Testing Suite** - Unit tests, Selenium tests, coverage
+- [ ] **Phase 5: Admin Account & Authority** - Admin roles, admin dashboard, user/listing management
+- [ ] **Phase 6: Security Hardening** - CSRF, password hashing, session security, input validation
+- [ ] **Phase 7: Testing Suite** - Unit tests, Selenium tests, coverage
 
 ## Phase Details
 
@@ -92,7 +93,29 @@ Plans:
 
 **UI hint**: yes
 
-### Phase 5: Security Hardening
+### Phase 5: Admin Account & Authority
+**Goal**: Admin users can manage users, listings, and moderate the marketplace from the existing gallery (no separate dashboard)
+**Depends on**: Phase 1
+**Requirements**: ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-04, ADMIN-05, ADMIN-06, ADMIN-07, ADMIN-08, ADMIN-09, ADMIN-10
+**Success Criteria** (what must be TRUE):
+  1. Admin account exists with elevated privileges (is_admin flag on User model)
+  2. Admin can view and manage all users (view, ban/unban)
+  3. Admin can view and manage all listings (delete, feature/unfeature)
+  4. Admin controls are integrated into the gallery (no separate dashboard)
+  5. Regular users cannot access admin routes (receive 403 Forbidden)
+  6. Banned users are completely blocked from the app
+  7. Featured listings appear at the top of the gallery with a badge
+**Plans**: 4 plans
+
+Plans:
+- [x] 05-01-PLAN.md -- Data layer: is_admin/ban_status on User, is_featured on Listing, migration, seed-admin CLI
+- [ ] 05-02-PLAN.md -- Backend: admin_required decorator, admin routes, ban interception, 403 handler, featured-first sorting
+- [ ] 05-03-PLAN.md -- Templates and CSS: admin card controls, featured badge, admin user page, banned page, 403 page
+- [ ] 05-04-PLAN.md -- Tests: admin_client fixture, all ADMIN-01 through ADMIN-10 tests
+
+**UI hint**: yes
+
+### Phase 6: Security Hardening
 **Goal**: Platform protects against common web vulnerabilities and securely stores credentials
 **Depends on**: Phase 1, Phase 2
 **Requirements**: SEC-01, SEC-02, SEC-03, SEC-04, SEC-05
@@ -104,7 +127,7 @@ Plans:
   5. Sensitive configuration (SECRET_KEY) stored in .env file
 **Plans**: TBD
 
-### Phase 6: Testing Suite
+### Phase 7: Testing Suite
 **Goal**: Codebase has comprehensive test coverage for models, auth, and user journeys
 **Depends on**: Phase 1, Phase 2, Phase 3
 **Requirements**: TEST-01, TEST-02, TEST-03, TEST-04, TEST-05, TEST-06
@@ -118,7 +141,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -126,9 +149,10 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 2. Marketplace Core | 3/3 | Complete | - |
 | 3. Search & Discovery | 3/3 | Complete | 2026-04-20 |
 | 4. Messaging System | 3/3 | Complete | 2026-04-25 |
-| 5. Security Hardening | 0/0 | Not started | - |
-| 6. Testing Suite | 0/0 | Not started | - |
+| 5. Admin Account & Authority | 1/4 | In Progress | - |
+| 6. Security Hardening | 0/0 | Not started | - |
+| 7. Testing Suite | 0/0 | Not started | - |
 
 ---
 
-*Last updated: 2026-04-25*
+*Last updated: 2026-05-05*
