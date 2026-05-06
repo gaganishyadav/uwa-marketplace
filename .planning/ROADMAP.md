@@ -110,7 +110,7 @@ Plans:
 Plans:
 - [x] 05-01-PLAN.md -- Data layer: is_admin/ban_status on User, is_featured on Listing, migration, seed-admin CLI
 - [x] 05-02-PLAN.md -- Backend: admin_required decorator, admin routes, ban interception, 403 handler, featured-first sorting
-- [ ] 05-03-PLAN.md -- Templates and CSS: admin card controls, featured badge, admin user page, banned page, 403 page
+- [x] 05-03-PLAN.md -- Templates and CSS: admin card controls, featured badge, admin user page, banned page, 403 page
 - [ ] 05-04-PLAN.md -- Tests: admin_client fixture, all ADMIN-01 through ADMIN-10 tests
 
 **UI hint**: yes

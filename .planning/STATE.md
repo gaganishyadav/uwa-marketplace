@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Completed 05-02-PLAN.md
-last_updated: "2026-05-06T05:41:47Z"
-last_activity: 2026-05-06 -- Completed Phase 05 Plan 02 (admin routes & enforcement)
+last_updated: "2026-05-06T05:51:10.628Z"
+last_activity: 2026-05-06
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 15
-  completed_plans: 12
-  percent: 80
+  completed_plans: 13
+  percent: 87
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-25)
 ## Current Position
 
 Phase: 05 (admin-account-and-authority) — EXECUTING
-Plan: 2 of 4
-Status: Completed 05-02-PLAN.md
-Last activity: 2026-05-06 -- Completed Phase 05 Plan 02 (admin routes & enforcement)
+Plan: 3 of 4
+Status: Ready to execute
+Last activity: 2026-05-06
 
-Progress: [████████░░] 80%
+Progress: [█████████░] 87%
 
 ## Performance Metrics
 
@@ -59,6 +59,7 @@ Progress: [████████░░] 80%
 | Phase 02 P03 | 6min | 4 tasks | 6 files |
 | Phase 05 P01 | 2min | 2 tasks | 4 files |
 | Phase 05 P02 | 2min | 1 task | 1 file |
+| Phase 05 P03 | 3min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,8 @@ Recent decisions affecting current work:
 - [Phase 05]: seed-admin sets email_verified=True so admin can log in immediately without OTP
 - [Phase 05]: admin_required uses abort(403) for non-admins; before_request whitelist for banned users allows only logout and static
 - [Phase 05]: Featured-first sorting uses three separate queries (featured, non-featured active, sold) concatenated
+- [Phase ?]: btn-tertiary CSS class added per DESIGN.md ghost button pattern
+- [Phase ?]: Featured badge positioned on left of card image to coexist with status badge on right
 
 ### Pending Todos
 
@@ -102,6 +105,6 @@ None yet.
 
 - Phase 7 added: Admin Account & Authority (2026-05-05)
 
-Last session: 2026-05-06T05:41:47Z
+Last session: 2026-05-06T05:51:10.624Z
 Stopped at: Completed 05-02-PLAN.md
-Resume file: .planning/phases/05-admin-account-and-authority/05-02-SUMMARY.md
+Resume file: None
