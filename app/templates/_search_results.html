@@ -2,7 +2,7 @@
 <span id="result-count" class="result-count">{{ count_text }}</span>
 {% if listings %}
     {% for listing in listings %}
-        {{ listing_card(listing, show_actions=(user is not none and listing.user_id == user.id), current_user_id=(user.id if user else none)) }}
+        {{ listing_card(listing, show_actions=(user is not none and listing.user_id == user.id), current_user_id=(user.id if user else none), is_admin=(user.is_admin if user else false)) }}
     {% endfor %}
 {% else %}
     <div class="search-empty">
