@@ -178,10 +178,10 @@ def init_routes(app):
     @app.route('/listing/<int:listing_id>')
     def listing_detail(listing_id):
         listing = db.session.get(Listing, listing_id)
-        if not listing:
+        if not listing or listing.status == 'deleted':
             abort(404)
         user = db.session.get(User, session['user_id']) if 'user_id' in session else None
-        return render_template('listing_detail.html', listing=listing, current_user=user)
+        return render_template('listing_detail.html', listing=listing)
 
     @app.route('/dashboard')
     @email_verified_required
@@ -635,7 +635,7 @@ def init_routes(app):
     def admin_feature_listing(listing_id):
         """Admin toggle featured status on any listing (per D-10, D-13)."""
         listing = db.session.get(Listing, listing_id)
-        if not listing:
+        if not listing or listing.status == 'deleted':
             abort(404)
         listing.is_featured = not listing.is_featured
         db.session.commit()
@@ -676,10 +676,13 @@ def init_routes(app):
     @app.route('/admin/unban-user/<int:user_id>', methods=['POST'])
     @admin_required
     def admin_unban_user(user_id):
-        """Admin unban user (per D-17)."""
+        """Admin unban user (per D-17). Guard against admin self-unban."""
         target_user = db.session.get(User, user_id)
         if not target_user:
             abort(404)
+        if target_user.is_admin:
+            flash('Cannot modify admin account.', 'error')
+            return redirect(url_for('admin_user', user_id=user_id))
         target_user.ban_status = 'active'
         db.session.commit()
         flash(f'{target_user.display_name} has been unbanned.', 'success')
