@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-05-06T05:36:25Z"
-last_activity: 2026-05-06 -- Completed Phase 05 Plan 01 (admin data layer)
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-05-06T05:41:47Z"
+last_activity: 2026-05-06 -- Completed Phase 05 Plan 02 (admin routes & enforcement)
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 15
-  completed_plans: 11
-  percent: 73
+  completed_plans: 12
+  percent: 80
 ---
 
 # Project State
@@ -27,18 +27,18 @@ See: .planning/PROJECT.md (updated 2026-03-25)
 
 Phase: 05 (admin-account-and-authority) — EXECUTING
 Plan: 2 of 4
-Status: Completed 05-01-PLAN.md
-Last activity: 2026-05-06 -- Completed Phase 05 Plan 01 (admin data layer)
+Status: Completed 05-02-PLAN.md
+Last activity: 2026-05-06 -- Completed Phase 05 Plan 02 (admin routes & enforcement)
 
-Progress: [█████████░] 91%
+Progress: [████████░░] 80%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 3
-- Average duration: 12 min
-- Total execution time: 0.58 hours
+- Total plans completed: 4
+- Average duration: 10 min
+- Total execution time: 0.62 hours
 
 **By Phase:**
 
@@ -58,6 +58,7 @@ Progress: [█████████░] 91%
 | Phase 02 P02 | 5min | 3 tasks | 3 files |
 | Phase 02 P03 | 6min | 4 tasks | 6 files |
 | Phase 05 P01 | 2min | 2 tasks | 4 files |
+| Phase 05 P02 | 2min | 1 task | 1 file |
 
 ## Accumulated Context
 
@@ -80,6 +81,8 @@ Recent decisions affecting current work:
 - [Phase 02]: Message Seller button rendered as disabled placeholder, deferred to Phase 5 messaging
 - [Phase 05]: Used server_default in migration for NOT NULL columns on existing tables (SQLite compatibility)
 - [Phase 05]: seed-admin sets email_verified=True so admin can log in immediately without OTP
+- [Phase 05]: admin_required uses abort(403) for non-admins; before_request whitelist for banned users allows only logout and static
+- [Phase 05]: Featured-first sorting uses three separate queries (featured, non-featured active, sold) concatenated
 
 ### Pending Todos
 
@@ -99,6 +102,6 @@ None yet.
 
 - Phase 7 added: Admin Account & Authority (2026-05-05)
 
-Last session: 2026-05-06T05:36:25Z
-Stopped at: Completed 05-01-PLAN.md
-Resume file: .planning/phases/05-admin-account-and-authority/05-01-SUMMARY.md
+Last session: 2026-05-06T05:41:47Z
+Stopped at: Completed 05-02-PLAN.md
+Resume file: .planning/phases/05-admin-account-and-authority/05-02-SUMMARY.md

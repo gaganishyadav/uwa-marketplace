@@ -109,7 +109,7 @@ Plans:
 
 Plans:
 - [x] 05-01-PLAN.md -- Data layer: is_admin/ban_status on User, is_featured on Listing, migration, seed-admin CLI
-- [ ] 05-02-PLAN.md -- Backend: admin_required decorator, admin routes, ban interception, 403 handler, featured-first sorting
+- [x] 05-02-PLAN.md -- Backend: admin_required decorator, admin routes, ban interception, 403 handler, featured-first sorting
 - [ ] 05-03-PLAN.md -- Templates and CSS: admin card controls, featured badge, admin user page, banned page, 403 page
 - [ ] 05-04-PLAN.md -- Tests: admin_client fixture, all ADMIN-01 through ADMIN-10 tests
 
@@ -149,7 +149,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 2. Marketplace Core | 3/3 | Complete | - |
 | 3. Search & Discovery | 3/3 | Complete | 2026-04-20 |
 | 4. Messaging System | 3/3 | Complete | 2026-04-25 |
-| 5. Admin Account & Authority | 1/4 | In Progress | - |
+| 5. Admin Account & Authority | 2/4 | In Progress | - |
 | 6. Security Hardening | 0/0 | Not started | - |
 | 7. Testing Suite | 0/0 | Not started | - |
 
