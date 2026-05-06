@@ -20,7 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 2: Marketplace Core** - Listing CRUD, public gallery, category management
 - [x] **Phase 3: Search & Discovery** - AJAX search, filtering, category UI
 - [x] **Phase 4: Messaging System** - Buyer-seller messaging with inbox
-- [ ] **Phase 5: Admin Account & Authority** - Admin roles, admin dashboard, user/listing management
+- [x] **Phase 5: Admin Account & Authority** - Admin roles, admin dashboard, user/listing management
 - [ ] **Phase 6: Security Hardening** - CSRF, password hashing, session security, input validation
 - [ ] **Phase 7: Testing Suite** - Unit tests, Selenium tests, coverage
 
@@ -111,7 +111,7 @@ Plans:
 - [x] 05-01-PLAN.md -- Data layer: is_admin/ban_status on User, is_featured on Listing, migration, seed-admin CLI
 - [x] 05-02-PLAN.md -- Backend: admin_required decorator, admin routes, ban interception, 403 handler, featured-first sorting
 - [x] 05-03-PLAN.md -- Templates and CSS: admin card controls, featured badge, admin user page, banned page, 403 page
-- [ ] 05-04-PLAN.md -- Tests: admin_client fixture, all ADMIN-01 through ADMIN-10 tests
+- [x] 05-04-PLAN.md -- Tests: admin_client fixture, all ADMIN-01 through ADMIN-10 tests
 
 **UI hint**: yes
 
@@ -149,7 +149,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 2. Marketplace Core | 3/3 | Complete | - |
 | 3. Search & Discovery | 3/3 | Complete | 2026-04-20 |
 | 4. Messaging System | 3/3 | Complete | 2026-04-25 |
-| 5. Admin Account & Authority | 2/4 | In Progress | - |
+| 5. Admin Account & Authority | 4/4 | Complete | 2026-05-06 |
 | 6. Security Hardening | 0/0 | Not started | - |
 | 7. Testing Suite | 0/0 | Not started | - |
 
