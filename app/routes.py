@@ -38,6 +38,19 @@ def email_verified_required(f):
     return decorated
 
 
+def admin_required(f):
+    """Abort 403 if current user is not admin (per D-20, D-21)."""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('auth'))
+        user = db.session.get(User, session['user_id'])
+        if not user or not user.is_admin:
+            abort(403)
+        return f(*args, **kwargs)
+    return decorated
+
+
 def init_routes(app):
     """Register all application routes directly on the app (no blueprints, per D-01)."""
 
@@ -66,20 +79,40 @@ def init_routes(app):
         return listing
 
     # ------------------------------------------------------------------
+    # Before-request hooks & error handlers
+    # ------------------------------------------------------------------
+
+    @app.before_request
+    def check_ban_status():
+        """Redirect banned users to banned page (per D-16)."""
+        if 'user_id' in session:
+            if request.endpoint in ('banned', 'logout', 'static'):
+                return None
+            user = db.session.get(User, session['user_id'])
+            if user and user.ban_status in ('banned', 'permanent_ban'):
+                return redirect(url_for('banned'))
+
+    @app.errorhandler(403)
+    def forbidden(e):
+        return render_template('403.html'), 403
+
+    # ------------------------------------------------------------------
     # Marketplace routes
     # ------------------------------------------------------------------
 
     @app.route('/')
     def gallery():
-        """Public gallery - shows all listings, active first, then sold (per D-20)."""
-        active_listings = Listing.query.filter_by(status='active').order_by(
+        """Public gallery - featured first, then active, then sold (per D-11)."""
+        featured_listings = Listing.query.filter_by(status='active', is_featured=True).order_by(
+            Listing.created_at.desc()).all()
+        active_listings = Listing.query.filter_by(status='active', is_featured=False).order_by(
             Listing.created_at.desc()).all()
         sold_listings = Listing.query.filter_by(status='sold').order_by(
             Listing.created_at.desc()).all()
         listing_form = ListingForm()
         user = db.session.get(User, session['user_id']) if 'user_id' in session else None
         return render_template('gallery.html',
-                               listings=active_listings + sold_listings,
+                               listings=featured_listings + active_listings + sold_listings,
                                listing_form=listing_form,
                                user=user)
 
@@ -126,10 +159,11 @@ def init_routes(app):
             active_query = active_query.filter(Listing.price <= max_price)
             sold_query = sold_query.filter(Listing.price <= max_price)
 
-        # Order by newest first, active before sold (per D-11)
-        active_listings = active_query.order_by(Listing.created_at.desc()).all()
+        # Order by newest first, featured before non-featured, active before sold (per D-11)
+        featured_listings = active_query.filter_by(is_featured=True).order_by(Listing.created_at.desc()).all()
+        non_featured_active = active_query.filter_by(is_featured=False).order_by(Listing.created_at.desc()).all()
         sold_listings = sold_query.order_by(Listing.created_at.desc()).all()
-        listings = active_listings + sold_listings
+        listings = featured_listings + non_featured_active + sold_listings
 
         # Build result count text (per D-12)
         count = len(listings)
@@ -148,11 +182,11 @@ def init_routes(app):
     @app.route('/listing/<int:listing_id>')
     def listing_detail(listing_id):
         listing = db.session.get(Listing, listing_id)
-        if not listing:
+        if not listing or listing.status == 'deleted':
             abort(404)
         user = db.session.get(User, session['user_id']) if 'user_id' in session else None
         listing_form = ListingForm()
-        return render_template('listing_detail.html', listing=listing, current_user=user,
+        return render_template('listing_detail.html', listing=listing, user=user,
                                listing_form=listing_form)
 
     @app.route('/dashboard')
@@ -433,7 +467,7 @@ def init_routes(app):
                                        login_form=LoginForm(),
                                        register_form=form,
                                        active_tab='signup',
-                                      register_error= 'An account with this email already exists.')
+                                       register_error='An account with this email already exists.')
             user = User(display_name=form.display_name.data, email=form.email.data)
             user.set_password(form.password.data)
             otp = user.generate_otp()
@@ -570,3 +604,104 @@ def init_routes(app):
     def logout():
         session.clear()
         return redirect(url_for('auth'))
+
+    # ------------------------------------------------------------------
+    # Admin routes (per D-20, D-21)
+    # ------------------------------------------------------------------
+
+    @app.route('/admin/user/<int:user_id>')
+    @admin_required
+    def admin_user(user_id):
+        """Admin user detail page with ban controls (per D-14)."""
+        target_user = db.session.get(User, user_id)
+        if not target_user:
+            abort(404)
+        listing_count = Listing.query.filter_by(user_id=user_id).filter(
+            Listing.status.in_(['active', 'sold'])).count()
+        return render_template('admin_user.html', target_user=target_user,
+                               listing_count=listing_count)
+
+    @app.route('/admin/delete-listing/<int:listing_id>', methods=['POST'])
+    @admin_required
+    def admin_delete_listing(listing_id):
+        """Admin delete any listing (per D-08, D-09)."""
+        listing = db.session.get(Listing, listing_id)
+        if not listing:
+            abort(404)
+        if listing.image_path:
+            img_path = os.path.join(app.config['UPLOAD_FOLDER'], listing.image_path)
+            if os.path.exists(img_path):
+                os.remove(img_path)
+        listing.status = 'deleted'
+        listing.image_path = None
+        db.session.commit()
+        flash('Listing deleted by admin.', 'success')
+        return redirect(request.referrer or url_for('gallery'))
+
+    @app.route('/admin/feature-listing/<int:listing_id>', methods=['POST'])
+    @admin_required
+    def admin_feature_listing(listing_id):
+        """Admin toggle featured status on any listing (per D-10, D-13)."""
+        listing = db.session.get(Listing, listing_id)
+        if not listing or listing.status == 'deleted':
+            abort(404)
+        listing.is_featured = not listing.is_featured
+        db.session.commit()
+        status = 'featured' if listing.is_featured else 'unfeatured'
+        flash(f'Listing {status}.', 'success')
+        return redirect(request.referrer or url_for('gallery'))
+
+    @app.route('/admin/ban-user/<int:user_id>', methods=['POST'])
+    @admin_required
+    def admin_ban_user(user_id):
+        """Admin ban user temporarily (per D-15). Guard against admin self-ban (T-05-07)."""
+        target_user = db.session.get(User, user_id)
+        if not target_user:
+            abort(404)
+        if target_user.is_admin:
+            flash('Cannot ban admin account.', 'error')
+            return redirect(url_for('admin_user', user_id=user_id))
+        target_user.ban_status = 'banned'
+        db.session.commit()
+        flash(f'{target_user.display_name} has been banned.', 'success')
+        return redirect(url_for('admin_user', user_id=user_id))
+
+    @app.route('/admin/permanent-ban-user/<int:user_id>', methods=['POST'])
+    @admin_required
+    def admin_permanent_ban_user(user_id):
+        """Admin permanently ban user (per D-15). Guard against admin self-ban (T-05-07)."""
+        target_user = db.session.get(User, user_id)
+        if not target_user:
+            abort(404)
+        if target_user.is_admin:
+            flash('Cannot ban admin account.', 'error')
+            return redirect(url_for('admin_user', user_id=user_id))
+        target_user.ban_status = 'permanent_ban'
+        db.session.commit()
+        flash(f'{target_user.display_name} has been permanently banned.', 'success')
+        return redirect(url_for('admin_user', user_id=user_id))
+
+    @app.route('/admin/unban-user/<int:user_id>', methods=['POST'])
+    @admin_required
+    def admin_unban_user(user_id):
+        """Admin unban user (per D-17). Guard against admin self-unban."""
+        target_user = db.session.get(User, user_id)
+        if not target_user:
+            abort(404)
+        if target_user.is_admin:
+            flash('Cannot modify admin account.', 'error')
+            return redirect(url_for('admin_user', user_id=user_id))
+        target_user.ban_status = 'active'
+        db.session.commit()
+        flash(f'{target_user.display_name} has been unbanned.', 'success')
+        return redirect(url_for('admin_user', user_id=user_id))
+
+    @app.route('/banned')
+    def banned():
+        """Banned user landing page (per D-16)."""
+        if 'user_id' not in session:
+            return redirect(url_for('auth'))
+        user = db.session.get(User, session['user_id'])
+        if not user or user.ban_status not in ('banned', 'permanent_ban'):
+            return redirect(url_for('gallery'))
+        return render_template('banned.html')

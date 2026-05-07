@@ -57,6 +57,16 @@
                         {# Not logged in #}
                         <a href="{{ url_for('auth') }}" class="btn-primary">Log in to message seller</a>
                     {% endif %}
+                    {% if user and user.is_admin %}
+                        <form action="{{ url_for('admin_delete_listing', listing_id=listing.id) }}" method="post" style="display:inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn-secondary" style="color:#c62828;">Delete</button>
+                        </form>
+                        <form action="{{ url_for('admin_feature_listing', listing_id=listing.id) }}" method="post" style="display:inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn-secondary">{{ 'Unfeature' if listing.is_featured else 'Feature' }}</button>
+                        </form>
+                    {% endif %}
                 </div>
 
                 {# ---- Seller Info (D-09) ---- #}
@@ -65,8 +75,17 @@
                         {{ listing.user.display_name[0] | upper }}
                     </div>
                     <div class="item-seller-info">
-                        <div class="item-seller-name">{{ listing.user.display_name }}</div>
+                        <div class="item-seller-name">
+                            {% if user and user.is_admin %}
+                            <a href="{{ url_for('admin_user', user_id=listing.user.id) }}">{{ listing.user.display_name }}</a>
+                            {% else %}
+                            {{ listing.user.display_name }}
+                            {% endif %}
+                        </div>
                         <div class="item-seller-date">Posted {{ listing.created_at.strftime('%d %b %Y') }}</div>
+                        {% if listing.user.ban_status in ('banned', 'permanent_ban') %}
+                        <span class="seller-suspended-label">Seller suspended</span>
+                        {% endif %}
                     </div>
                 </div>
             </div>

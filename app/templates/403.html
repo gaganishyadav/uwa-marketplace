@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}403 Forbidden - UWA Swap-Meet{% endblock %}
+{% block content %}
+<section class="gallery-page" style="padding-top:100px;">
+    <div style="max-width:600px;margin:0 auto;padding:0 var(--space-md);text-align:center;">
+        <span class="material-symbols-outlined" style="font-size:4rem;color:var(--color-on-surface-variant);opacity:0.4;">lock</span>
+        <h1 style="font-family:var(--font-headline);font-size:1.75rem;font-weight:700;color:var(--color-on-surface);margin:var(--space-md) 0;">Access Denied</h1>
+        <p style="color:var(--color-on-surface-variant);margin-bottom:var(--space-lg);">You do not have permission to access this page.</p>
+        <a href="{{ url_for('gallery') }}" class="btn-primary">Back to Gallery</a>
+    </div>
+</section>
+{% endblock %}

@@ -2387,3 +2387,181 @@ section {
     color: var(--text-muted, #64748b);
     margin-top: 5px;
 }
+
+/* ===================================
+   ADMIN: Featured Badge
+   =================================== */
+
+/* Tertiary button (ghost style per DESIGN.md) */
+.btn-tertiary {
+    background: transparent;
+    color: var(--color-primary);
+    font-family: var(--font-label);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    padding: 0.625rem 1.25rem;
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-tertiary:hover {
+    text-decoration: underline;
+    text-decoration-color: var(--color-secondary);
+    text-underline-offset: 3px;
+}
+
+.status-featured {
+    background: rgba(0, 48, 135, 0.1);
+    color: var(--color-primary);
+}
+
+/* ===================================
+   ADMIN: Card Admin Actions
+   =================================== */
+
+.ad-card-footer--admin {
+    border-top: 1px solid var(--color-outline-variant);
+}
+
+.btn-ad-feature {
+    color: var(--color-primary);
+}
+
+.btn-ad-feature:hover {
+    background: rgba(0, 48, 135, 0.08);
+}
+
+/* ===================================
+   ADMIN: Seller Suspended Label
+   =================================== */
+
+.ad-card-seller-suspended {
+    font-size: 0.75rem;
+    color: #c62828;
+    font-style: italic;
+    margin-top: 0.25rem;
+}
+
+.seller-suspended-label {
+    display: inline-block;
+    font-size: 0.75rem;
+    color: #c62828;
+    font-style: italic;
+    margin-top: 0.25rem;
+}
+
+/* ===================================
+   ADMIN: User Detail Page
+   =================================== */
+
+.admin-user-card {
+    background: var(--color-surface-container-lowest, var(--color-surface-lowest));
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+}
+
+.admin-user-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+}
+
+.admin-user-avatar {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background: var(--color-surface-low);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-headline);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    flex-shrink: 0;
+}
+
+.admin-user-name {
+    font-family: var(--font-headline);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-on-surface);
+    margin: 0;
+}
+
+.admin-user-email {
+    font-size: 0.875rem;
+    color: var(--color-on-surface-variant);
+    margin: 0;
+}
+
+.admin-user-status {
+    font-family: var(--font-label);
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-full);
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+.admin-user-status--active {
+    background: rgba(0, 48, 135, 0.1);
+    color: var(--color-primary);
+}
+
+.admin-user-status--banned {
+    background: rgba(198, 40, 40, 0.1);
+    color: #c62828;
+}
+
+.admin-user-details {
+    display: flex;
+    gap: var(--space-xl);
+    padding: var(--space-md) 0;
+    border-top: 1px solid var(--color-outline-variant);
+    border-bottom: 1px solid var(--color-outline-variant);
+    margin-bottom: var(--space-lg);
+}
+
+.admin-user-detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.admin-user-detail-label {
+    font-family: var(--font-label);
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-on-surface-variant);
+}
+
+.admin-user-detail-value {
+    font-size: 0.875rem;
+    color: var(--color-on-surface);
+}
+
+.admin-user-actions-title {
+    font-family: var(--font-headline);
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--color-on-surface);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--space-sm);
+}
+
+.admin-user-actions form {
+    margin-right: var(--space-sm);
+    margin-bottom: var(--space-sm);
+}

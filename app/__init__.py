@@ -147,4 +147,26 @@ def create_app(config=None):
         db.session.commit()
         click.echo(f'Seeded {len(listings_data)} mock listings from {len(users)} users.')
 
+    # Seed admin account from .env credentials (per D-05, D-06)
+    @app.cli.command('seed-admin')
+    def seed_admin_command():
+        """Create admin account from .env credentials (per D-05, D-06)."""
+        from app.models import User
+        import click
+
+        admin_email = os.environ.get('ADMIN_EMAIL')
+        admin_password = os.environ.get('ADMIN_PASSWORD')
+        if not admin_email or not admin_password:
+            click.echo('ADMIN_EMAIL and ADMIN_PASSWORD must be set in .env')
+            return
+        existing = User.query.filter_by(email=admin_email).first()
+        if existing:
+            click.echo(f'Admin account already exists: {admin_email}')
+            return
+        admin = User(display_name='Admin', email=admin_email, is_admin=True, email_verified=True)
+        admin.set_password(admin_password)
+        db.session.add(admin)
+        db.session.commit()
+        click.echo(f'Admin account created: {admin_email}')
+
     return app

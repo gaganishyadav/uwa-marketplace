@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Account Suspended - UWA Swap-Meet{% endblock %}
+{% block content %}
+<section class="gallery-page" style="padding-top:100px;">
+    <div style="max-width:600px;margin:0 auto;padding:0 var(--space-md);text-align:center;">
+        <span class="material-symbols-outlined" style="font-size:4rem;color:#c62828;opacity:0.6;">block</span>
+        <h1 style="font-family:var(--font-headline);font-size:1.75rem;font-weight:700;color:var(--color-on-surface);margin:var(--space-md) 0;">Account Suspended</h1>
+        <p style="color:var(--color-on-surface-variant);margin-bottom:var(--space-lg);">Your account has been suspended by an administrator. If you believe this is an error, please contact support.</p>
+        <form action="{{ url_for('logout') }}" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn-primary">Log Out</button>
+        </form>
+    </div>
+</section>
+{% endblock %}

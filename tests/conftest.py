@@ -28,3 +28,21 @@ def app(tmp_path):
 def client(app):
     """Create a test client."""
     return app.test_client()
+
+
+@pytest.fixture
+def admin_client(app):
+    """Create an admin user and return an authenticated client."""
+    with app.app_context():
+        from app.models import User
+        user = User(display_name='Admin', email='admin@test.com')
+        user.set_password('AdminPass1')
+        user.email_verified = True
+        user.is_admin = True
+        _db.session.add(user)
+        _db.session.commit()
+        uid = user.id
+    client = app.test_client()
+    with client.session_transaction() as sess:
+        sess['user_id'] = uid
+    return client

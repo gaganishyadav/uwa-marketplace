@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}{{ target_user.display_name }} - Admin - UWA Swap-Meet{% endblock %}
+{% block content %}
+<section class="gallery-page" style="padding-top:100px;">
+    <div style="max-width:800px;margin:0 auto;padding:0 var(--space-md);">
+        <a href="{{ url_for('gallery') }}" class="btn-tertiary" style="margin-bottom:var(--space-md);display:inline-block;">&larr; Back to Gallery</a>
+
+        <div class="admin-user-card">
+            <div class="admin-user-header">
+                <div class="admin-user-avatar">{{ target_user.display_name[0] | upper }}</div>
+                <div>
+                    <h1 class="admin-user-name">{{ target_user.display_name }}</h1>
+                    <p class="admin-user-email">{{ target_user.email }}</p>
+                </div>
+                {% if target_user.ban_status in ('banned', 'permanent_ban') %}
+                <span class="admin-user-status admin-user-status--banned">{{ 'Permanently Banned' if target_user.ban_status == 'permanent_ban' else 'Banned' }}</span>
+                {% else %}
+                <span class="admin-user-status admin-user-status--active">Active</span>
+                {% endif %}
+            </div>
+
+            <div class="admin-user-details">
+                <div class="admin-user-detail-item">
+                    <span class="admin-user-detail-label">Joined</span>
+                    <span class="admin-user-detail-value">{{ target_user.created_at.strftime('%d %b %Y') }}</span>
+                </div>
+                <div class="admin-user-detail-item">
+                    <span class="admin-user-detail-label">Listings</span>
+                    <span class="admin-user-detail-value">{{ listing_count }}</span>
+                </div>
+                <div class="admin-user-detail-item">
+                    <span class="admin-user-detail-label">Email Verified</span>
+                    <span class="admin-user-detail-value">{{ 'Yes' if target_user.email_verified else 'No' }}</span>
+                </div>
+            </div>
+
+            <div class="admin-user-actions">
+                <h2 class="admin-user-actions-title">Moderation Actions</h2>
+                {% if target_user.ban_status in ('banned', 'permanent_ban') %}
+                <form action="{{ url_for('admin_unban_user', user_id=target_user.id) }}" method="post" style="display:inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn-primary">Unban User</button>
+                </form>
+                {% else %}
+                <form action="{{ url_for('admin_ban_user', user_id=target_user.id) }}" method="post" style="display:inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn-secondary" style="color:#b38600;">Ban User</button>
+                </form>
+                <form action="{{ url_for('admin_permanent_ban_user', user_id=target_user.id) }}" method="post" style="display:inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn-secondary" style="color:#c62828;">Permanent Ban</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

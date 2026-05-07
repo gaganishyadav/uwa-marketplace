@@ -2,11 +2,11 @@
 
 ## Overview
 
-This roadmap delivers a hyper-local student marketplace for UWA, progressing from foundation through authentication, marketplace features, search, messaging, and campus map integration. The project is organized into 7 phases aligned with three academic milestones, ensuring students can securely trade goods with safe campus meetups.
+This roadmap delivers a hyper-local student marketplace for UWA, progressing from foundation through authentication, marketplace features, search, messaging, and admin controls. The project is organized into 7 phases aligned with three academic milestones, ensuring students can securely trade goods on campus.
 
 **Milestone 1 (Phases 1-2):** Foundation + Basic Marketplace
-**Milestone 2 (Phases 3-5):** Discovery + Messaging
-**Milestone 3 (Phases 6-7):** Security + Testing + Polish
+**Milestone 2 (Phases 3-4):** Discovery + Messaging
+**Milestone 3 (Phases 5-7):** Security + Testing + Admin + Polish
 
 ## Phases
 
@@ -20,7 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 2: Marketplace Core** - Listing CRUD, public gallery, category management
 - [x] **Phase 3: Search & Discovery** - AJAX search, filtering, category UI
 - [x] **Phase 4: Messaging System** - Buyer-seller messaging with inbox
-- [ ] **Phase 5: Campus Map Integration** - Leaflet.js integration with meetup spot selection
+- [x] **Phase 5: Admin Account & Authority** - Admin roles, admin dashboard, user/listing management
 - [ ] **Phase 6: Security Hardening** - CSRF, password hashing, session security, input validation
 - [ ] **Phase 7: Testing Suite** - Unit tests, Selenium tests, coverage
 
@@ -93,16 +93,25 @@ Plans:
 
 **UI hint**: yes
 
-### Phase 5: Campus Map Integration
-**Goal**: Users can select and view campus meetup locations using interactive map
-**Depends on**: Phase 2
-**Requirements**: MAP-01, MAP-02, MAP-03, MAP-04
+### Phase 5: Admin Account & Authority
+**Goal**: Admin users can manage users, listings, and moderate the marketplace from the existing gallery (no separate dashboard)
+**Depends on**: Phase 1
+**Requirements**: ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-04, ADMIN-05, ADMIN-06, ADMIN-07, ADMIN-08, ADMIN-09, ADMIN-10
 **Success Criteria** (what must be TRUE):
-  1. Seller can select predefined meetup spot when creating listing
-  2. Buyer sees selected meetup spot pinned on interactive campus map
-  3. Map displays all 7 UWA campus locations (libraries, guild, oak lawn, etc.)
-  4. Map is responsive and loads without blocking page render
-**Plans**: TBD
+  1. Admin account exists with elevated privileges (is_admin flag on User model)
+  2. Admin can view and manage all users (view, ban/unban)
+  3. Admin can view and manage all listings (delete, feature/unfeature)
+  4. Admin controls are integrated into the gallery (no separate dashboard)
+  5. Regular users cannot access admin routes (receive 403 Forbidden)
+  6. Banned users are completely blocked from the app
+  7. Featured listings appear at the top of the gallery with a badge
+**Plans**: 4 plans
+
+Plans:
+- [x] 05-01-PLAN.md -- Data layer: is_admin/ban_status on User, is_featured on Listing, migration, seed-admin CLI
+- [x] 05-02-PLAN.md -- Backend: admin_required decorator, admin routes, ban interception, 403 handler, featured-first sorting
+- [x] 05-03-PLAN.md -- Templates and CSS: admin card controls, featured badge, admin user page, banned page, 403 page
+- [x] 05-04-PLAN.md -- Tests: admin_client fixture, all ADMIN-01 through ADMIN-10 tests
 
 **UI hint**: yes
 
@@ -137,13 +146,13 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Flask Foundation & Authentication | 2/2 | Complete | 2026-04-04 |
-| 2. Marketplace Core | 0/0 | Not started | - |
+| 2. Marketplace Core | 3/3 | Complete | - |
 | 3. Search & Discovery | 3/3 | Complete | 2026-04-20 |
 | 4. Messaging System | 3/3 | Complete | 2026-04-25 |
-| 5. Campus Map Integration | 0/0 | Not started | - |
+| 5. Admin Account & Authority | 4/4 | Complete | 2026-05-06 |
 | 6. Security Hardening | 0/0 | Not started | - |
 | 7. Testing Suite | 0/0 | Not started | - |
 
 ---
 
-*Last updated: 2026-04-25*
+*Last updated: 2026-05-05*
