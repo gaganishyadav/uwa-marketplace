@@ -189,6 +189,28 @@ def init_routes(app):
         return render_template('listing_detail.html', listing=listing, user=user,
                                listing_form=listing_form)
 
+    @app.route('/user/<int:user_id>')
+    def seller_profile(user_id):
+        seller = db.session.get(User, user_id)
+        if not seller:
+            abort(404)
+        viewer = db.session.get(User, session['user_id']) if 'user_id' in session else None
+        is_banned = seller.ban_status in ('banned', 'permanent_ban')
+        if is_banned:
+            listings = []
+        else:
+            listings = Listing.query.filter_by(
+                user_id=user_id, status='active'
+            ).order_by(
+                Listing.is_featured.desc(), Listing.created_at.desc()
+            ).all()
+        return render_template('seller_profile.html',
+                               seller=seller,
+                               listings=listings,
+                               active_count=len(listings),
+                               is_banned=is_banned,
+                               user=viewer)
+
     @app.route('/dashboard')
     @email_verified_required
     def dashboard():

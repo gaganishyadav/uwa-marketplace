@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% from "_listing_card.html" import listing_card %}
+{% block title %}{{ seller.display_name }} - UWA Swap-Meet{% endblock %}
+{% block body_class %}dashboard-page{% endblock %}
+{% block content %}
+<section class="dashboard">
+    <div class="profile-header">
+        <div class="profile-header-container">
+            <div class="profile-identity">
+                <div class="profile-avatar-lg">
+                    {{ seller.display_name[0] | upper }}
+                </div>
+                <div class="profile-info">
+                    <h1 class="profile-name">{{ seller.display_name }}</h1>
+                    <p class="profile-joined">
+                        <span class="material-symbols-outlined" style="font-size:1rem;">schedule</span>
+                        Joined {{ seller.created_at.strftime('%d %b %Y') }}
+                    </p>
+                    {% if seller.bio %}
+                    <p class="profile-bio">{{ seller.bio }}</p>
+                    {% endif %}
+                    {% if not is_banned and listings and (not user or user.id != seller.id) %}
+                    <div class="profile-actions">
+                        {% if user %}
+                        <button class="btn-primary" id="btn-message-seller">Message Seller</button>
+                        {% else %}
+                        <a href="{{ url_for('auth') }}" class="btn-primary">Log in to message seller</a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="profile-stats">
+                <div class="profile-stat-card">
+                    <span class="material-symbols-outlined profile-stat-icon">sell</span>
+                    <div>
+                        <div class="profile-stat-number">{{ active_count }}</div>
+                        <div class="profile-stat-label">Active</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="my-ads">
+        <div class="my-ads-container">
+            {% if is_banned %}
+            <div class="seller-banned-banner" role="alert">
+                <span class="material-symbols-outlined">block</span>
+                <div>
+                    <h3>This account has been suspended</h3>
+                    <p>Listings from this seller are no longer available on UWA Swap-Meet.</p>
+                </div>
+            </div>
+            {% else %}
+            <div class="my-ads-header">
+                <div>
+                    <h2 class="my-ads-title">Active Listings</h2>
+                    <p class="my-ads-subtitle">Items currently being offered by {{ seller.display_name }}</p>
+                </div>
+            </div>
+            <div class="ads-grid">
+                {% if listings %}
+                    {% for listing in listings %}
+                        {{ listing_card(listing, show_actions=false) }}
+                    {% endfor %}
+                {% else %}
+                <p class="my-ads-empty">No active listings.</p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+{% if user and not is_banned and listings and user.id != seller.id %}
+{% set listing = listings[0] %}
+{% include '_message_modal.html' %}
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/inbox.js') }}" defer></script>
+{% endblock %}

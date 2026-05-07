@@ -1025,6 +1025,15 @@ section {
     margin-bottom: var(--space-sm);
 }
 
+.profile-joined {
+    font-size: 0.875rem;
+    color: var(--color-on-surface-variant);
+    margin-bottom: var(--space-sm);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
 .profile-bio {
     font-size: 0.9375rem;
     color: var(--color-on-surface-variant);
@@ -2452,6 +2461,55 @@ section {
     color: #c62828;
     font-style: italic;
     margin-top: 0.25rem;
+}
+
+/* ===================================
+   SELLER PROFILE: Public seller page
+   =================================== */
+
+.seller-banned-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-md);
+    padding: var(--space-lg);
+    background: #fdecea;
+    border-left: 4px solid #c62828;
+    border-radius: var(--radius-md);
+    color: #5a1717;
+}
+
+.seller-banned-banner .material-symbols-outlined {
+    font-size: 2rem;
+    color: #c62828;
+    flex-shrink: 0;
+}
+
+.seller-banned-banner h3 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.125rem;
+    color: #c62828;
+}
+
+.seller-banned-banner p {
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.my-ads-empty {
+    color: var(--color-on-surface-variant, #666);
+    font-size: 0.95rem;
+    padding: var(--space-md) 0;
+}
+
+a.item-seller-link {
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.15s ease, transform 0.15s ease;
+}
+
+a.item-seller-link:hover {
+    background: var(--color-surface);
+    transform: translateY(-1px);
 }
 
 /* ===================================
