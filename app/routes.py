@@ -179,6 +179,25 @@ def init_routes(app):
                                search_query=q,
                                user=user)
 
+    @app.route('/api/listings/suggest')
+    def api_listings_suggest():
+        """Typeahead suggestions: up to 5 distinct active listing titles matching q."""
+        q = request.args.get('q', '').strip()
+        if len(q) < 3:
+            return jsonify([])
+
+        search_term = q.replace('%', r'\%').replace('_', r'\_')
+        pattern = f'%{search_term}%'
+        rows = (
+            db.session.query(Listing.title)
+            .filter(Listing.status == 'active', Listing.title.ilike(pattern))
+            .distinct()
+            .order_by(Listing.title.asc())
+            .limit(5)
+            .all()
+        )
+        return jsonify([title for (title,) in rows])
+
     @app.route('/listing/<int:listing_id>')
     def listing_detail(listing_id):
         listing = db.session.get(Listing, listing_id)
