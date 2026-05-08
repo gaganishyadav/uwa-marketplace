@@ -17,7 +17,13 @@ def create_app(config=None):
 
     # Configuration from .env (per D-04)
     basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
+    secret_key = os.environ.get('SECRET_KEY') or (config or {}).get('SECRET_KEY')
+    if not secret_key:
+        raise RuntimeError(
+            'SECRET_KEY is not set. Add it to your .env file '
+            '(see .env.example) or pass it via the create_app(config=...) argument.'
+        )
+    app.config['SECRET_KEY'] = secret_key
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL',
         'sqlite:///' + os.path.join(basedir, 'marketplace.db'))
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
