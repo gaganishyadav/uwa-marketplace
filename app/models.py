@@ -107,6 +107,7 @@ class Message(db.Model):
     receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=_utcnow, nullable=False)
+    read_at = db.Column(db.DateTime, nullable=True)
 
     listing = db.relationship('Listing', backref=db.backref('messages', lazy='dynamic'))
     sender = db.relationship('User', foreign_keys=[sender_id],
@@ -117,4 +118,5 @@ class Message(db.Model):
     __table_args__ = (
         db.Index('ix_message_listing_created', 'listing_id', 'created_at'),
         db.Index('ix_message_receiver_created', 'receiver_id', 'created_at'),
+        db.Index('ix_message_receiver_read', 'receiver_id', 'read_at'),
     )

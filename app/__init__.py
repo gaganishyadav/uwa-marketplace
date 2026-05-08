@@ -5,11 +5,13 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
 from flask_mail import Mail
+from flask_socketio import SocketIO
 
 db = SQLAlchemy()
 migrate = Migrate()
 csrf = CSRFProtect()
 mail = Mail()
+socketio = SocketIO()
 
 
 def create_app(config=None):
@@ -47,6 +49,7 @@ def create_app(config=None):
     migrate.init_app(app, db)
     csrf.init_app(app)
     mail.init_app(app)
+    socketio.init_app(app, manage_session=False)
 
     # Make current user available in all templates
     @app.context_processor
@@ -61,6 +64,10 @@ def create_app(config=None):
     # Import routes
     from app.routes import init_routes
     init_routes(app)
+
+    # Register WebSocket event handlers
+    from app.socket_events import register_socket_events
+    register_socket_events()
 
     # Seed command for development data (per D-13)
     @app.cli.command('seed')

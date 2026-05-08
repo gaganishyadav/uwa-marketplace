@@ -41,7 +41,11 @@
             {% endif %}
 
             {% if messages %}
-            <div class="chat-container" aria-label="Conversation with {{ other_user.display_name if other_user else 'Unknown' }} about {{ thread_listing.title if thread_listing else 'listing' }}">
+            <div class="chat-container"
+                 data-listing-id="{{ thread_listing.id if thread_listing else '' }}"
+                 data-other-user-id="{{ other_user_id }}"
+                 data-current-user-id="{{ current_user_id }}"
+                 aria-label="Conversation with {{ other_user.display_name if other_user else 'Unknown' }} about {{ thread_listing.title if thread_listing else 'listing' }}">
                 {% for msg in messages %}
                 {% if msg.sender_id == current_user_id %}
                 <div class="chat-bubble chat-bubble--sent" aria-label="You at {{ msg.created_at.strftime('%d %b %H:%M') }}: {{ msg.content }}">
@@ -59,6 +63,9 @@
             {% endif %}
 
             {% if thread_listing and thread_listing.status == 'active' and other_user_id != current_user_id %}
+            <div class="typing-indicator" style="display:none;font-size:0.8rem;color:var(--color-outline);padding:var(--space-xs) var(--space-sm);">
+                <span class="typing-indicator-name"></span> is typing...
+            </div>
             <form class="thread-reply" id="form-thread-reply" action="{{ url_for('thread_reply', listing_id=thread_listing.id, with_user_id=other_user_id) }}" method="post">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <textarea name="content" id="thread-reply-content" class="form-input form-textarea"
@@ -120,5 +127,8 @@
 {% endblock %}
 
 {% block scripts %}
+{% if mode == 'thread' %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+{% endif %}
 <script src="{{ url_for('static', filename='js/inbox.js') }}" defer></script>
 {% endblock %}
