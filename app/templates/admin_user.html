@@ -22,7 +22,7 @@
             <div class="admin-user-details">
                 <div class="admin-user-detail-item">
                     <span class="admin-user-detail-label">Joined</span>
-                    <span class="admin-user-detail-value">{{ target_user.created_at.strftime('%d %b %Y') }}</span>
+                    <span class="admin-user-detail-value">{{ target_user.created_at|local_time('%d %b %Y') }}</span>
                 </div>
                 <div class="admin-user-detail-item">
                     <span class="admin-user-detail-label">Listings</span>

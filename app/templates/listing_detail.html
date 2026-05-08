@@ -32,7 +32,7 @@
                     <span><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;">category</span> {{ listing.category }}</span>
                     <span><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;">star</span> {{ listing.condition }}</span>
                     <span><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;">location_on</span> {{ listing.meetup_spot }}</span>
-                    <span><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;">schedule</span> {{ listing.created_at.strftime('%d %b %Y') }}</span>
+                    <span><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;">schedule</span> {{ listing.created_at|local_time('%d %b %Y') }}</span>
                 </div>
 
                 {# ---- Actions (D-09, D-10) ---- #}
@@ -77,7 +77,7 @@
                     </div>
                     <div class="item-seller-info">
                         <div class="item-seller-name">{{ listing.user.display_name }}</div>
-                        <div class="item-seller-date">Posted {{ listing.created_at.strftime('%d %b %Y') }}</div>
+                        <div class="item-seller-date">Posted {{ listing.created_at|local_time('%d %b %Y') }}</div>
                         {% if listing.user.ban_status in ('banned', 'permanent_ban') %}
                         <span class="seller-suspended-label">Seller suspended</span>
                         {% endif %}

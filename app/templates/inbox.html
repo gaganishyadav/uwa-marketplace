@@ -44,14 +44,14 @@
             <div class="chat-container" aria-label="Conversation with {{ other_user.display_name if other_user else 'Unknown' }} about {{ thread_listing.title if thread_listing else 'listing' }}">
                 {% for msg in messages %}
                 {% if msg.sender_id == current_user_id %}
-                <div class="chat-bubble chat-bubble--sent" aria-label="You at {{ msg.created_at.strftime('%d %b %H:%M') }}: {{ msg.content }}">
+                <div class="chat-bubble chat-bubble--sent" aria-label="You at {{ msg.created_at|perth }}: {{ msg.content }}">
                     {{ msg.content }}
-                    <div class="chat-bubble-time">{{ msg.created_at.strftime('%d %b %H:%M') }}</div>
+                    <div class="chat-bubble-time">{{ msg.created_at|local_time }}</div>
                 </div>
                 {% else %}
-                <div class="chat-bubble chat-bubble--received" aria-label="{{ other_user.display_name if other_user else 'Unknown' }} at {{ msg.created_at.strftime('%d %b %H:%M') }}: {{ msg.content }}">
+                <div class="chat-bubble chat-bubble--received" aria-label="{{ other_user.display_name if other_user else 'Unknown' }} at {{ msg.created_at|perth }}: {{ msg.content }}">
                     {{ msg.content }}
-                    <div class="chat-bubble-time">{{ msg.created_at.strftime('%d %b %H:%M') }}</div>
+                    <div class="chat-bubble-time">{{ msg.created_at|local_time }}</div>
                 </div>
                 {% endif %}
                 {% endfor %}
@@ -99,7 +99,7 @@
                 </div>
                 <div class="inbox-row-meta">
                     <span class="inbox-row-name">{{ other_usr.display_name if other_usr else 'Unknown' }}</span>
-                    <span class="inbox-row-time">{{ conv.created_at.strftime('%d %b %H:%M') }}</span>
+                    <span class="inbox-row-time">{{ conv.created_at|local_time }}</span>
                     {% if conv.listing and conv.listing.status == 'sold' %}
                     <span class="ad-card-status status-sold" style="font-size:0.5rem;">Sold</span>
                     {% endif %}
