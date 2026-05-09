@@ -179,6 +179,25 @@ def init_routes(app):
                                search_query=q,
                                user=user)
 
+    @app.route('/api/listings/suggest')
+    def api_listings_suggest():
+        """Typeahead suggestions: up to 5 distinct active listing titles matching q."""
+        q = request.args.get('q', '').strip()
+        if len(q) < 3:
+            return jsonify([])
+
+        search_term = q.replace('%', r'\%').replace('_', r'\_')
+        pattern = f'%{search_term}%'
+        rows = (
+            db.session.query(Listing.title)
+            .filter(Listing.status == 'active', Listing.title.ilike(pattern))
+            .distinct()
+            .order_by(Listing.title.asc())
+            .limit(5)
+            .all()
+        )
+        return jsonify([title for (title,) in rows])
+
     @app.route('/listing/<int:listing_id>')
     def listing_detail(listing_id):
         listing = db.session.get(Listing, listing_id)
@@ -188,6 +207,28 @@ def init_routes(app):
         listing_form = ListingForm()
         return render_template('listing_detail.html', listing=listing, user=user,
                                listing_form=listing_form)
+
+    @app.route('/user/<int:user_id>')
+    def seller_profile(user_id):
+        seller = db.session.get(User, user_id)
+        if not seller:
+            abort(404)
+        viewer = db.session.get(User, session['user_id']) if 'user_id' in session else None
+        is_banned = seller.ban_status in ('banned', 'permanent_ban')
+        if is_banned:
+            listings = []
+        else:
+            listings = Listing.query.filter_by(
+                user_id=user_id, status='active'
+            ).order_by(
+                Listing.is_featured.desc(), Listing.created_at.desc()
+            ).all()
+        return render_template('seller_profile.html',
+                               seller=seller,
+                               listings=listings,
+                               active_count=len(listings),
+                               is_banned=is_banned,
+                               user=viewer)
 
     @app.route('/dashboard')
     @email_verified_required

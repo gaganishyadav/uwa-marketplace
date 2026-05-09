@@ -1,15 +1,18 @@
 import os
-from datetime import timedelta
+from datetime import timedelta, timezone
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
 from flask_mail import Mail
+from markupsafe import Markup, escape
 
 db = SQLAlchemy()
 migrate = Migrate()
 csrf = CSRFProtect()
 mail = Mail()
+
+PERTH_TZ = timezone(timedelta(hours=8))
 
 
 def create_app(config=None):
@@ -17,7 +20,13 @@ def create_app(config=None):
 
     # Configuration from .env (per D-04)
     basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
+    secret_key = os.environ.get('SECRET_KEY') or (config or {}).get('SECRET_KEY')
+    if not secret_key:
+        raise RuntimeError(
+            'SECRET_KEY is not set. Add it to your .env file '
+            '(see .env.example) or pass it via the create_app(config=...) argument.'
+        )
+    app.config['SECRET_KEY'] = secret_key
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL',
         'sqlite:///' + os.path.join(basedir, 'marketplace.db'))
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -47,6 +56,33 @@ def create_app(config=None):
     migrate.init_app(app, db)
     csrf.init_app(app)
     mail.init_app(app)
+
+    # Render naive UTC datetimes as Perth local time (UTC+8, no DST).
+    # Use this filter only inside HTML attributes (aria-label, title, etc.)
+    # where embedded markup would break the surrounding string.
+    @app.template_filter('perth')
+    def perth_time(dt, fmt='%d %b %H:%M'):
+        if dt is None:
+            return ''
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone(PERTH_TZ).strftime(fmt)
+
+    # Render naive UTC datetimes as a <time> element. Server emits Perth time
+    # as the visible fallback; client-side local_time.js re-renders the text
+    # in the viewer's browser timezone via Intl.DateTimeFormat.
+    @app.template_filter('local_time')
+    def local_time(dt, fmt='%d %b %H:%M'):
+        if dt is None:
+            return ''
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        perth_str = dt.astimezone(PERTH_TZ).strftime(fmt)
+        iso = dt.astimezone(timezone.utc).isoformat()
+        return Markup(
+            f'<time class="local-time" datetime="{escape(iso)}" '
+            f'data-format="{escape(fmt)}">{escape(perth_str)}</time>'
+        )
 
     # Make current user available in all templates
     @app.context_processor
