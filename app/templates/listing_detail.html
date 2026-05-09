@@ -83,6 +83,18 @@
                         {% endif %}
                     </div>
                 </a>
+
+                {# ---- Meetup Location Map ---- #}
+                {% if listing.meetup_spot %}
+                <div class="item-meetup">
+                    <h3 class="item-meetup-title">
+                        <span class="material-symbols-outlined" style="font-size:1.1rem;vertical-align:middle;">location_on</span>
+                        Meetup location
+                    </h3>
+                    <p class="item-meetup-name">{{ listing.meetup_spot }}</p>
+                    <div id="listing-meetup-map" class="item-meetup-map"></div>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -97,4 +109,43 @@
 {% endblock %}
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/inbox.js') }}" defer></script>
+{% if listing.meetup_spot %}
+<script>
+    $(function () {
+        var meetupSpot = {{ listing.meetup_spot|tojson }};
+        var map = new Mazemap.Map({
+            container: 'listing-meetup-map',
+            campuses: 309,
+            center: { lng: 115.8175, lat: -31.9800 },
+            zoom: 15,
+            zLevel: 1
+        });
+        map.on('load', function () {
+            $.getJSON('https://search.mazemap.com/search/equery/', {
+                q: meetupSpot,
+                campusid: 309,
+                rows: 1,
+                srid: 4326
+            }, function (data) {
+                if (data.result && data.result.length > 0) {
+                    var r = data.result[0];
+                    var lngLat = {
+                        lng: r.point.coordinates[0],
+                        lat: r.point.coordinates[1]
+                    };
+                    new Mazemap.MazeMarker({
+                        color: '#003087',
+                        innerCircle: true,
+                        innerCircleColor: '#FFB81C',
+                        size: 36,
+                        innerCircleScale: 0.45,
+                        zLevel: 1
+                    }).setLngLat(lngLat).addTo(map);
+                    map.flyTo({ center: lngLat, zoom: 17 });
+                }
+            });
+        });
+    });
+</script>
+{% endif %}
 {% endblock %}

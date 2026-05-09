@@ -1665,6 +1665,34 @@ section {
     color: var(--color-on-surface-variant);
 }
 
+.item-meetup {
+    margin-top: var(--space-md);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--color-surface-low);
+}
+
+.item-meetup-title {
+    font-family: var(--font-headline);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-on-surface);
+    margin-bottom: 0.25rem;
+}
+
+.item-meetup-name {
+    font-size: 0.875rem;
+    color: var(--color-on-surface-variant);
+    margin-bottom: var(--space-xs);
+}
+
+.item-meetup-map {
+    width: 100%;
+    height: 280px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1.5px solid var(--color-surface-low);
+}
+
 /* ===================================
    GALLERY PAGE
    =================================== */
