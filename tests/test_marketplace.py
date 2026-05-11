@@ -102,8 +102,12 @@ def test_gallery_shows_active_listings(verified_client, app):
         db.session.commit()
 
     response = verified_client.get('/', follow_redirects=True)
-    assert response.status_code == 200
-    assert b'Visible Textbook' in response.data
+    assert response.status_code == 200, f"GET / should render the gallery; got {response.status_code}"
+    assert b'Visible Textbook' in response.data, (
+        "active listing title 'Visible Textbook' was not rendered in the gallery -- "
+        "the gallery route may have filtered out active listings, the template may "
+        "have stopped iterating over 'listings', or the listing was not committed"
+    )
 
 
 def test_gallery_no_auth_required(client, app):
@@ -130,8 +134,12 @@ def test_gallery_shows_sold_with_badge(verified_client, app):
         db.session.commit()
 
     response = verified_client.get('/', follow_redirects=True)
-    assert response.status_code == 200
-    assert b'Sold Item' in response.data
+    assert response.status_code == 200, f"GET / should render; got {response.status_code}"
+    assert b'Sold Item' in response.data, (
+        "sold listing title 'Sold Item' was not rendered in the gallery -- "
+        "sold listings should still appear (with a badge) per D-11; the gallery "
+        "route may have started filtering them out"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -185,12 +193,26 @@ def test_create_listing_with_image(verified_client, app):
 
     with app.app_context():
         listing = Listing.query.first()
-        assert listing is not None
-        assert listing.image_path is not None
-        assert listing.image_path.endswith('.jpg')
+        assert listing is not None, (
+            "no Listing row was created -- the form likely failed validation; "
+            "check the flash messages or form.errors"
+        )
+        assert listing.image_path is not None, (
+            "Listing was created but image_path is NULL -- save_upload returned "
+            "None (extension or magic-byte rejection) or the form did not bind the file"
+        )
+        assert listing.image_path.endswith('.jpg'), (
+            f"expected the saved filename to keep the .jpg extension; "
+            f"got image_path={listing.image_path!r}"
+        )
         # Verify file exists on disk
         upload_dir = app.config['UPLOAD_FOLDER']
-        assert os.path.exists(os.path.join(upload_dir, listing.image_path))
+        full_path = os.path.join(upload_dir, listing.image_path)
+        assert os.path.exists(full_path), (
+            f"image_path {listing.image_path!r} is recorded in the DB but the file "
+            f"is missing on disk at {full_path!r} -- save_upload may have raised "
+            f"after the rename or the upload folder was cleared between save and check"
+        )
 
 
 def test_reject_oversized_upload(verified_client, app):
