@@ -476,6 +476,11 @@ def init_routes(app):
         ).first()
         if not existing:
             abort(403)
+        # Per-sender rate limit (anti-spam)
+        if Message.is_sender_rate_limited(user_id):
+            flash(f'You are sending messages too quickly. Please wait a moment '
+                  f'(limit: {Message.RATE_LIMIT} per minute).', 'error')
+            return redirect(url_for('inbox', thread=listing_id, with_user=with_user_id))
 
         form = MessageForm()
         if form.validate_on_submit():
