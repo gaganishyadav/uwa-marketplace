@@ -483,6 +483,14 @@ def init_routes(app):
             db.session.commit()
         return redirect(url_for('inbox', thread=listing_id, with_user=with_user_id))
 
+    @app.route('/api/unread-count')
+    @email_verified_required
+    def api_unread_count():
+        count = Message.query.filter_by(
+            receiver_id=session['user_id'], read_at=None
+        ).count()
+        return jsonify({'count': count})
+
     # ------------------------------------------------------------------
     # Auth routes
     # ------------------------------------------------------------------
