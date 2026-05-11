@@ -306,11 +306,25 @@ def test_auth_redirects_verified_user(client, app):
 def test_register_password_mismatch(client, app):
     """Passwords that don't match reject registration and show an error."""
     response = register_user(client, password='Password1', confirm_password='Different1')
-    assert response.status_code == 200
-    assert b'Field must be equal to password' in response.data or b'must match' in response.data or b'Passwords' in response.data
+    assert response.status_code == 200, (
+        f"expected the form to re-render with errors (HTTP 200) on password mismatch; "
+        f"got {response.status_code} -- did the form actually accept mismatched passwords?"
+    )
+    # We accept any of several validator messages because WTForms / our custom
+    # validator could phrase it differently across versions.
+    expected_phrases = (b'Field must be equal to password', b'must match', b'Passwords')
+    assert any(p in response.data for p in expected_phrases), (
+        f"none of the expected mismatch messages {[p.decode() for p in expected_phrases]} "
+        f"appeared in the rendered form -- the validator may have been removed or "
+        f"its message text changed"
+    )
 
     with app.app_context():
-        assert User.query.count() == 0
+        user_count = User.query.count()
+        assert user_count == 0, (
+            f"expected no user to be created when passwords mismatch; "
+            f"found {user_count} user(s) -- the form is committing despite validation errors"
+        )
 
 
 def test_login_nonexistent_user(client, app):
