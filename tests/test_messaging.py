@@ -257,12 +257,25 @@ class TestMessageRateLimit:
                            data={'content': 'one too many'},
                            headers={'Accept': 'application/json'})
 
-        assert resp.status_code == 429
+        assert resp.status_code == 429, (
+            f"expected HTTP 429 once sender exceeds RATE_LIMIT={Message.RATE_LIMIT} "
+            f"within {Message.RATE_WINDOW_SECONDS}s; got {resp.status_code}. "
+            f"Body: {resp.get_data(as_text=True)[:200]}"
+        )
         data = resp.get_json()
-        assert 'errors' in data and any('quickly' in e.lower() for e in data['errors'])
+        assert data is not None, (
+            f"expected JSON response on 429; got non-JSON: {resp.get_data(as_text=True)[:200]}"
+        )
+        assert 'errors' in data, f"expected 'errors' key in 429 response; got keys: {list(data.keys())}"
+        assert any('quickly' in e.lower() for e in data['errors']), (
+            f"expected rate-limit message containing 'quickly'; got errors: {data['errors']}"
+        )
         with app.app_context():
-            # Pre-seeded RATE_LIMIT rows; no new row was inserted
-            assert Message.query.count() == Message.RATE_LIMIT
+            count = Message.query.count()
+            assert count == Message.RATE_LIMIT, (
+                f"rate-limit guard let an extra message through: expected exactly "
+                f"{Message.RATE_LIMIT} rows (the pre-seeded ones), found {count}"
+            )
 
     def test_send_message_succeeds_when_seed_is_old(self, app, client):
         """Messages dated outside the rolling window do not consume the budget."""
@@ -291,9 +304,19 @@ class TestMessageRateLimit:
                            data={'content': 'fresh'},
                            headers={'Accept': 'application/json'})
 
-        assert resp.status_code == 200
+        assert resp.status_code == 200, (
+            f"expected fresh message to succeed (all seeded rows are outside the "
+            f"{Message.RATE_WINDOW_SECONDS}s window); got {resp.status_code}. "
+            f"Body: {resp.get_data(as_text=True)[:200]}"
+        )
         with app.app_context():
-            assert Message.query.count() == Message.RATE_LIMIT + 1
+            count = Message.query.count()
+            assert count == Message.RATE_LIMIT + 1, (
+                f"expected new row to be inserted: {Message.RATE_LIMIT} stale + 1 fresh "
+                f"= {Message.RATE_LIMIT + 1} total; found {count}. The rolling window "
+                f"may be using >= instead of > on the threshold, or stale rows are "
+                f"being counted."
+            )
 
     def test_thread_reply_blocked_at_limit(self, app, client):
         """Once at the limit, /thread-reply flashes an error and writes no row."""
@@ -307,11 +330,23 @@ class TestMessageRateLimit:
                            data={'content': 'reply that should be blocked'},
                            follow_redirects=True)
 
-        assert resp.status_code == 200
-        assert b'sending messages too quickly' in resp.data.lower() or \
-               b'too quickly' in resp.data.lower()
+        assert resp.status_code == 200, (
+            f"expected 200 after redirect-then-render flow; got {resp.status_code}. "
+            f"Either the redirect target itself errored, or the rate-limit guard "
+            f"raised instead of flashing."
+        )
+        assert b'too quickly' in resp.data.lower(), (
+            "expected the flashed rate-limit warning ('...too quickly...') to appear "
+            "in the rendered inbox after the redirect, but it wasn't found. The "
+            "guard may have allowed the reply through, or the flash category is "
+            "being filtered out by the template."
+        )
         with app.app_context():
-            assert Message.query.count() == Message.RATE_LIMIT
+            count = Message.query.count()
+            assert count == Message.RATE_LIMIT, (
+                f"thread-reply rate-limit guard let a message through: expected "
+                f"exactly {Message.RATE_LIMIT} rows (the pre-seeded ones), found {count}"
+            )
 
     def test_recent_count_for_sender_helper(self, app):
         """Unit test for the Message.recent_count_for_sender classmethod."""
@@ -336,7 +371,18 @@ class TestMessageRateLimit:
                 db.session.add(m)
             db.session.commit()
 
-            assert Message.recent_count_for_sender(buyer_id) == 3
-            assert Message.is_sender_rate_limited(buyer_id) is False
-            # Another sender's count is independent
-            assert Message.recent_count_for_sender(seller_id) == 0
+            buyer_count = Message.recent_count_for_sender(buyer_id)
+            assert buyer_count == 3, (
+                f"seeded 3 fresh + 2 stale messages for buyer; expected only the "
+                f"3 fresh to be counted, got {buyer_count}. The window check may "
+                f"be inclusive on the wrong side, or _utcnow() is drifting."
+            )
+            assert Message.is_sender_rate_limited(buyer_id) is False, (
+                f"buyer has only 3 messages in window vs RATE_LIMIT="
+                f"{Message.RATE_LIMIT}; is_sender_rate_limited must be False"
+            )
+            seller_count = Message.recent_count_for_sender(seller_id)
+            assert seller_count == 0, (
+                f"the seller never sent anything; expected count 0, got {seller_count}. "
+                f"The query is leaking across senders."
+            )
