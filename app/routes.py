@@ -4,7 +4,7 @@ from datetime import timedelta
 from functools import wraps
 
 from flask import abort, redirect, url_for, session, render_template, flash, request, current_app, jsonify
-from flask_mail import Message
+from flask_mail import Message as MailMessage
 from werkzeug.utils import secure_filename
 
 from app import db, mail
@@ -526,7 +526,7 @@ def init_routes(app):
             # Send OTP email
             if not app.config.get('MAIL_SUPPRESS_SEND'):
                 try:
-                    msg = Message(
+                    msg = MailMessage(
                         'Your UWA Swap-Meet Verification Code',
                         recipients=[user.email],
                         body=f'Your verification code is: {otp}'
@@ -595,7 +595,7 @@ def init_routes(app):
             db.session.commit()
             if not current_app.config.get('MAIL_SUPPRESS_SEND'):
                 try:
-                    msg = Message(
+                    msg = MailMessage(
                         'Your UWA Swap-Meet Verification Code',
                         recipients=[user.email],
                         body=f'Your verification code is: {otp}'
@@ -619,7 +619,7 @@ def init_routes(app):
                 token = User.generate_reset_token(user.email, app.secret_key)
                 reset_url = url_for('reset_password', token=token, _external=True)
                 try:
-                    msg = Message(
+                    msg = MailMessage(
                         'Reset Your UWA Swap-Meet Password',
                         recipients=[user.email],
                         body=f'Click here to reset your password: {reset_url}'
