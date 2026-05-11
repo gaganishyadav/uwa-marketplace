@@ -363,6 +363,12 @@ def init_routes(app):
         # D-12: block messages on deleted listings
         if listing.status == 'deleted':
             return jsonify({'error': 'Listing not found.'}), 404
+        # Per-sender rate limit (anti-spam)
+        if Message.is_sender_rate_limited(session['user_id']):
+            return jsonify({
+                'errors': [f'You are sending messages too quickly. Please wait a moment '
+                           f'(limit: {Message.RATE_LIMIT} per minute).']
+            }), 429
 
         form = MessageForm()
         if form.validate_on_submit():
