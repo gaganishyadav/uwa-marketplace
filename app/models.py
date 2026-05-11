@@ -24,6 +24,8 @@ class User(db.Model):
     bio = db.Column(db.Text, nullable=True, default='')
     otp_code = db.Column(db.String(6), nullable=True)
     otp_created_at = db.Column(db.DateTime, nullable=True)
+    failed_login_attempts = db.Column(db.Integer, default=0, nullable=False)
+    lockout_until = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(
         db.DateTime,
         default=_utcnow,
@@ -59,6 +61,33 @@ class User(db.Model):
             return True
         cooldown = self.otp_created_at + timedelta(seconds=60)
         return _utcnow() >= cooldown
+
+    # ---- Login brute-force protection -------------------------------------
+    MAX_LOGIN_ATTEMPTS = 5
+    LOCKOUT_MINUTES = 15
+
+    def is_locked_out(self):
+        """Return True if this account is currently in a login lockout window."""
+        return self.lockout_until is not None and _utcnow() < self.lockout_until
+
+    def register_failed_login(self):
+        """Increment the failure counter; lock the account once the threshold is hit.
+        Caller is responsible for committing the session."""
+        self.failed_login_attempts = (self.failed_login_attempts or 0) + 1
+        if self.failed_login_attempts >= self.MAX_LOGIN_ATTEMPTS:
+            self.lockout_until = _utcnow() + timedelta(minutes=self.LOCKOUT_MINUTES)
+            self.failed_login_attempts = 0
+
+    def register_successful_login(self):
+        """Clear failure counter and lockout. Caller commits."""
+        self.failed_login_attempts = 0
+        self.lockout_until = None
+
+    def lockout_remaining_seconds(self):
+        """How many seconds until the lockout ends. 0 if not locked."""
+        if not self.is_locked_out():
+            return 0
+        return int((self.lockout_until - _utcnow()).total_seconds())
 
     @staticmethod
     def generate_reset_token(email, secret_key):
