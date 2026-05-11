@@ -353,3 +353,80 @@ def test_reset_password_invalid_token_post(client, app):
     }, follow_redirects=False)
     assert response.status_code == 302
     assert '/forgot-password' in response.headers['Location']
+
+
+# ---------------------------------------------------------------------------
+# Login brute-force lockout tests
+# ---------------------------------------------------------------------------
+
+def test_login_lockout_triggers_after_max_attempts(client, app):
+    """After 5 wrong-password attempts, the user is locked out."""
+    create_verified_user(app)
+    for _ in range(User.MAX_LOGIN_ATTEMPTS):
+        login_user(client, password='WrongPassword1')
+
+    with app.app_context():
+        user = User.query.filter_by(email='verified@student.uwa.edu.au').first()
+        assert user.is_locked_out() is True
+        assert user.lockout_until is not None
+        # Counter is reset to 0 once the lockout is applied
+        assert user.failed_login_attempts == 0
+
+
+def test_login_blocked_during_lockout_even_with_correct_password(client, app):
+    """A locked-out account cannot log in even if the correct password is supplied."""
+    from datetime import timedelta
+    from app.models import _utcnow
+
+    create_verified_user(app)
+    with app.app_context():
+        user = User.query.filter_by(email='verified@student.uwa.edu.au').first()
+        user.lockout_until = _utcnow() + timedelta(minutes=10)
+        db.session.commit()
+
+    response = login_user(client)  # correct credentials
+    assert response.status_code == 200  # re-renders form, NO redirect
+    assert b'temporarily locked' in response.data.lower() or b'locked' in response.data.lower()
+
+
+def test_login_lockout_expires_naturally(client, app):
+    """Once lockout_until is in the past, the user can log in again."""
+    from datetime import timedelta
+    from app.models import _utcnow
+
+    create_verified_user(app)
+    with app.app_context():
+        user = User.query.filter_by(email='verified@student.uwa.edu.au').first()
+        user.lockout_until = _utcnow() - timedelta(minutes=1)  # already expired
+        db.session.commit()
+
+    response = login_user(client)
+    assert response.status_code == 302  # successful redirect
+
+
+def test_successful_login_clears_failure_state(client, app):
+    """A correct password resets failed_login_attempts and lockout_until."""
+    create_verified_user(app)
+    # Pre-load some failed attempts (below threshold so account stays unlocked)
+    with app.app_context():
+        user = User.query.filter_by(email='verified@student.uwa.edu.au').first()
+        user.failed_login_attempts = 3
+        db.session.commit()
+
+    login_user(client)  # correct password
+
+    with app.app_context():
+        user = User.query.filter_by(email='verified@student.uwa.edu.au').first()
+        assert user.failed_login_attempts == 0
+        assert user.lockout_until is None
+
+
+def test_login_nonexistent_email_does_not_persist_anything(client, app):
+    """Hitting /login with an unknown email must not create a user or write to DB."""
+    response = client.post('/login', data={
+        'email': 'nobody@student.uwa.edu.au',
+        'password': 'WrongPassword1',
+    })
+    assert response.status_code == 200
+    with app.app_context():
+        assert User.query.filter_by(email='nobody@student.uwa.edu.au').first() is None
