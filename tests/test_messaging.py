@@ -222,3 +222,121 @@ class TestInbox:
         resp = client.get('/inbox')
         assert resp.status_code == 200
         assert b'Sold' in resp.data
+
+
+# ---------------------------------------------------------------------------
+# Rate-limit tests (per-sender, 10 messages per 60s rolling window)
+# ---------------------------------------------------------------------------
+
+class TestMessageRateLimit:
+    """Per-sender rate limit on /send-message and /thread-reply."""
+
+    def _seed_recent_messages(self, app, sender_id, receiver_id, listing_id, count):
+        """Insert `count` messages from sender to receiver dated 'now' so they
+        fall inside the rolling window and consume the rate-limit budget."""
+        with app.app_context():
+            for _ in range(count):
+                db.session.add(Message(
+                    listing_id=listing_id,
+                    sender_id=sender_id,
+                    receiver_id=receiver_id,
+                    content='spam' * 3,
+                ))
+            db.session.commit()
+
+    def test_send_message_blocked_at_limit(self, app, client):
+        """Once a buyer has sent RATE_LIMIT messages in the window, /send-message
+        returns 429 with a JSON error and does not insert a new row."""
+        seller_id = _create_verified_user(app, 'Seller', 'seller@test.student.uwa.edu.au')
+        buyer_id = _create_verified_user(app, 'Buyer', 'buyer@test.student.uwa.edu.au')
+        listing_id = _create_listing(app, seller_id)
+        self._seed_recent_messages(app, buyer_id, seller_id, listing_id, Message.RATE_LIMIT)
+        _login(client, 'buyer@test.student.uwa.edu.au')
+
+        resp = client.post(f'/send-message/{listing_id}',
+                           data={'content': 'one too many'},
+                           headers={'Accept': 'application/json'})
+
+        assert resp.status_code == 429
+        data = resp.get_json()
+        assert 'errors' in data and any('quickly' in e.lower() for e in data['errors'])
+        with app.app_context():
+            # Pre-seeded RATE_LIMIT rows; no new row was inserted
+            assert Message.query.count() == Message.RATE_LIMIT
+
+    def test_send_message_succeeds_when_seed_is_old(self, app, client):
+        """Messages dated outside the rolling window do not consume the budget."""
+        from datetime import timedelta
+        from app.models import _utcnow
+
+        seller_id = _create_verified_user(app, 'Seller', 'seller@test.student.uwa.edu.au')
+        buyer_id = _create_verified_user(app, 'Buyer', 'buyer@test.student.uwa.edu.au')
+        listing_id = _create_listing(app, seller_id)
+        # Pre-seed RATE_LIMIT messages but date them well outside the window
+        with app.app_context():
+            past = _utcnow() - timedelta(seconds=Message.RATE_WINDOW_SECONDS + 30)
+            for _ in range(Message.RATE_LIMIT):
+                m = Message(
+                    listing_id=listing_id,
+                    sender_id=buyer_id,
+                    receiver_id=seller_id,
+                    content='stale',
+                )
+                m.created_at = past
+                db.session.add(m)
+            db.session.commit()
+        _login(client, 'buyer@test.student.uwa.edu.au')
+
+        resp = client.post(f'/send-message/{listing_id}',
+                           data={'content': 'fresh'},
+                           headers={'Accept': 'application/json'})
+
+        assert resp.status_code == 200
+        with app.app_context():
+            assert Message.query.count() == Message.RATE_LIMIT + 1
+
+    def test_thread_reply_blocked_at_limit(self, app, client):
+        """Once at the limit, /thread-reply flashes an error and writes no row."""
+        seller_id = _create_verified_user(app, 'Seller', 'seller@test.student.uwa.edu.au')
+        buyer_id = _create_verified_user(app, 'Buyer', 'buyer@test.student.uwa.edu.au')
+        listing_id = _create_listing(app, seller_id)
+        self._seed_recent_messages(app, buyer_id, seller_id, listing_id, Message.RATE_LIMIT)
+        _login(client, 'buyer@test.student.uwa.edu.au')
+
+        resp = client.post(f'/thread-reply/{listing_id}/{seller_id}',
+                           data={'content': 'reply that should be blocked'},
+                           follow_redirects=True)
+
+        assert resp.status_code == 200
+        assert b'sending messages too quickly' in resp.data.lower() or \
+               b'too quickly' in resp.data.lower()
+        with app.app_context():
+            assert Message.query.count() == Message.RATE_LIMIT
+
+    def test_recent_count_for_sender_helper(self, app):
+        """Unit test for the Message.recent_count_for_sender classmethod."""
+        from datetime import timedelta
+        from app.models import _utcnow
+
+        seller_id = _create_verified_user(app, 'Seller', 'seller@test.student.uwa.edu.au')
+        buyer_id = _create_verified_user(app, 'Buyer', 'buyer@test.student.uwa.edu.au')
+        listing_id = _create_listing(app, seller_id)
+        with app.app_context():
+            # 3 recent, 2 stale
+            now = _utcnow()
+            stale_at = now - timedelta(seconds=Message.RATE_WINDOW_SECONDS + 30)
+            for created in (now, now, now, stale_at, stale_at):
+                m = Message(
+                    listing_id=listing_id,
+                    sender_id=buyer_id,
+                    receiver_id=seller_id,
+                    content='x',
+                )
+                m.created_at = created
+                db.session.add(m)
+            db.session.commit()
+
+            assert Message.recent_count_for_sender(buyer_id) == 3
+            assert Message.is_sender_rate_limited(buyer_id) is False
+            # Another sender's count is independent
+            assert Message.recent_count_for_sender(seller_id) == 0
