@@ -143,8 +143,15 @@ class TestViewThread:
 
         # View the thread
         resp = client.get(f'/inbox?thread={listing_id}&with_user={seller_id}')
-        assert resp.status_code == 200
-        assert b'Hello!' in resp.data
+        assert resp.status_code == 200, (
+            f"thread view should render for a participant; got {resp.status_code} "
+            f"(403 = participant check broken, 404 = thread route missing the case)"
+        )
+        assert b'Hello!' in resp.data, (
+            "the message body 'Hello!' should appear in the rendered thread -- "
+            "either the message was not stored, or the template stopped iterating "
+            "over the messages list"
+        )
 
     def test_thread_reply(self, app, client):
         """User can reply within a thread."""
@@ -164,8 +171,16 @@ class TestViewThread:
 
         with app.app_context():
             msgs = Message.query.filter_by(listing_id=listing_id).all()
-            assert len(msgs) == 2
-            assert any(m.content == 'Reply message' for m in msgs)
+            contents = [m.content for m in msgs]
+            assert len(msgs) == 2, (
+                f"expected 2 messages on the thread (1 initial + 1 reply); "
+                f"found {len(msgs)}: {contents!r} -- thread-reply may have "
+                f"silently dropped the message or written it under a different listing_id"
+            )
+            assert 'Reply message' in contents, (
+                f"expected the reply text 'Reply message' to be saved; "
+                f"actual stored contents are {contents!r}"
+            )
 
 
 class TestInbox:
@@ -184,8 +199,12 @@ class TestInbox:
 
         # View inbox
         resp = client.get('/inbox')
-        assert resp.status_code == 200
-        assert b'Test message for inbox' in resp.data
+        assert resp.status_code == 200, f"/inbox should render for a logged-in user; got {resp.status_code}"
+        assert b'Test message for inbox' in resp.data, (
+            "the conversation preview should include the sent message text -- "
+            "the inbox is either skipping this user's conversation or the preview "
+            "is being truncated to fewer than the test message's length"
+        )
 
     def test_inbox_empty_state(self, app, client):
         """Empty inbox shows empty state."""
@@ -193,8 +212,11 @@ class TestInbox:
         _login(client, 'user@test.student.uwa.edu.au')
 
         resp = client.get('/inbox')
-        assert resp.status_code == 200
-        assert b'No messages yet' in resp.data
+        assert resp.status_code == 200, f"/inbox should render even when empty; got {resp.status_code}"
+        assert b'No messages yet' in resp.data, (
+            "expected the empty-state copy 'No messages yet' on /inbox with no "
+            "messages -- the empty-state branch may have been removed from the template"
+        )
 
     def test_inbox_requires_login(self, app, client):
         """Inbox redirects unauthenticated users."""
@@ -220,5 +242,9 @@ class TestInbox:
             db.session.commit()
 
         resp = client.get('/inbox')
-        assert resp.status_code == 200
-        assert b'Sold' in resp.data
+        assert resp.status_code == 200, f"/inbox should render; got {resp.status_code}"
+        assert b'Sold' in resp.data, (
+            "the 'Sold' badge should appear next to a conversation on a sold listing "
+            "(per D-13); not finding it means the template stopped rendering the "
+            "status badge or the listing.status wasn't set to 'sold'"
+        )
