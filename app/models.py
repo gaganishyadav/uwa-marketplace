@@ -102,7 +102,7 @@ class Message(db.Model):
     __tablename__ = 'message'
 
     # Rate limit knobs (per-sender) used by routes to throttle abuse.
-    RATE_LIMIT = 10           # max messages
+    RATE_LIMIT = 20           # max messages
     RATE_WINDOW_SECONDS = 60  # per rolling window
 
     id = db.Column(db.Integer, primary_key=True)
