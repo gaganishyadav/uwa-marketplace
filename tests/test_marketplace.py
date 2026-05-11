@@ -15,12 +15,22 @@ from app.models import User, Listing
 # ---------------------------------------------------------------------------
 
 def make_test_image(filename='test.jpg', size_bytes=100):
-    """Create a minimal test image file for upload testing."""
-    data = b'\xff\xd8\xff\xe0' + b'\x00' * (size_bytes - 4)
+    """Create a minimal test image file for upload testing.
+
+    Writes magic bytes matching the filename extension so the upload
+    handler's content-type validation accepts the payload."""
+    ext = os.path.splitext(filename)[1].lower()
+    if ext == '.png':
+        header = b'\x89PNG\r\n\x1a\n'
+        content_type = 'image/png'
+    else:  # default to JPEG for .jpg / .jpeg / unknown
+        header = b'\xff\xd8\xff\xe0'
+        content_type = 'image/jpeg'
+    data = header + b'\x00' * max(0, size_bytes - len(header))
     return FileStorage(
         stream=io.BytesIO(data),
         filename=filename,
-        content_type='image/jpeg',
+        content_type=content_type,
     )
 
 

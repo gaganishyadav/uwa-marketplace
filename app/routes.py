@@ -58,13 +58,42 @@ def init_routes(app):
     # Helpers
     # ------------------------------------------------------------------
 
+    # Magic-byte signatures for the image formats we accept. Checked alongside
+    # the file extension so a renamed binary (e.g. malware.exe.jpg) is rejected
+    # even though its extension passes the whitelist.
+    _JPEG_MAGIC = b'\xff\xd8\xff'
+    _PNG_MAGIC = b'\x89PNG\r\n\x1a\n'
+
+    def _sniff_image_type(stream):
+        """Return 'jpeg', 'png', or None by reading the first 8 bytes.
+        Leaves the stream position unchanged."""
+        pos = stream.tell()
+        head = stream.read(8)
+        stream.seek(pos)
+        if head.startswith(_JPEG_MAGIC):
+            return 'jpeg'
+        if head.startswith(_PNG_MAGIC):
+            return 'png'
+        return None
+
     def save_upload(file_storage, upload_folder):
-        """Save uploaded file with UUID name. Returns filename or None."""
+        """Save uploaded file with UUID name. Returns filename or None.
+        Validates both the file extension and the magic bytes so that a
+        file's content must genuinely match its claimed type."""
         if not file_storage or not file_storage.filename:
             return None
         original = secure_filename(file_storage.filename)
         ext = os.path.splitext(original)[1].lower()
-        if ext.lstrip('.') not in {'jpg', 'jpeg', 'png'}:
+        ext_clean = ext.lstrip('.')
+        if ext_clean not in {'jpg', 'jpeg', 'png'}:
+            return None
+        # Sniff magic bytes and require them to match the claimed extension
+        detected = _sniff_image_type(file_storage.stream)
+        if detected is None:
+            return None
+        if detected == 'jpeg' and ext_clean not in {'jpg', 'jpeg'}:
+            return None
+        if detected == 'png' and ext_clean != 'png':
             return None
         filename = f"{uuid.uuid4().hex}{ext}"
         os.makedirs(upload_folder, exist_ok=True)
