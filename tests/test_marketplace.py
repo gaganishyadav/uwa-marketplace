@@ -220,6 +220,65 @@ def test_reject_oversized_upload(verified_client, app):
     assert response.status_code == 413
 
 
+def _make_bogus_upload(filename, body):
+    """Build a FileStorage with arbitrary bytes, used by the magic-byte tests."""
+    return FileStorage(
+        stream=io.BytesIO(body),
+        filename=filename,
+        content_type='image/jpeg',
+    )
+
+
+def test_upload_rejected_when_bytes_are_not_an_image(verified_client, app):
+    """An .jpg upload whose content is plain text must be saved with no image_path."""
+    data = create_listing_data()
+    data['image'] = _make_bogus_upload('text.jpg', b'This is just plain text not a JPEG')
+    verified_client.post(
+        '/create-listing',
+        data=data,
+        content_type='multipart/form-data',
+        follow_redirects=False,
+    )
+    with app.app_context():
+        listing = Listing.query.first()
+        assert listing is not None  # listing itself is still created
+        assert listing.image_path is None  # but the bogus file was rejected
+
+
+def test_upload_rejected_when_disguised_as_executable(verified_client, app):
+    """A Windows PE binary (MZ header) renamed to .jpg must be rejected."""
+    data = create_listing_data()
+    # MZ\x90\x00 is the magic for a Windows executable
+    data['image'] = _make_bogus_upload('malware.jpg', b'MZ\x90\x00' + b'\x00' * 100)
+    verified_client.post(
+        '/create-listing',
+        data=data,
+        content_type='multipart/form-data',
+        follow_redirects=False,
+    )
+    with app.app_context():
+        listing = Listing.query.first()
+        assert listing is not None
+        assert listing.image_path is None
+
+
+def test_upload_rejected_when_extension_contradicts_real_content(verified_client, app):
+    """A .png filename containing JPEG bytes (or vice versa) is rejected."""
+    data = create_listing_data()
+    # JPEG magic bytes but filename claims PNG
+    data['image'] = _make_bogus_upload('disguised.png', b'\xff\xd8\xff\xe0' + b'\x00' * 100)
+    verified_client.post(
+        '/create-listing',
+        data=data,
+        content_type='multipart/form-data',
+        follow_redirects=False,
+    )
+    with app.app_context():
+        listing = Listing.query.first()
+        assert listing is not None
+        assert listing.image_path is None
+
+
 # ---------------------------------------------------------------------------
 # Edit listing tests (MARKET-03)
 # ---------------------------------------------------------------------------
