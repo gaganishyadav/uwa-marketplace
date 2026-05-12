@@ -299,9 +299,13 @@ def test_featured_listings_sort_to_top(admin_client, app):
     # Featured listing should appear before regular listing in the HTML
     featured_pos = response.data.find(b'Featured Listing')
     regular_pos = response.data.find(b'Regular Listing')
-    assert featured_pos != -1
-    assert regular_pos != -1
-    assert featured_pos < regular_pos
+    assert featured_pos != -1, "Featured listing title is missing from the rendered gallery"
+    assert regular_pos != -1, "Regular listing title is missing from the rendered gallery"
+    assert featured_pos < regular_pos, (
+        f"featured listing should render before regular listing, but featured is at "
+        f"byte offset {featured_pos} and regular is at {regular_pos} -- "
+        f"sort order in /gallery may have regressed"
+    )
 
 
 def test_featured_badge_visible_on_card(admin_client, app):
@@ -330,12 +334,18 @@ def test_admin_seed_creates_account(app, monkeypatch):
     runner = app.test_cli_runner()
     with app.app_context():
         result = runner.invoke(args=['seed-admin'])
-        assert 'created' in result.output.lower() or 'Admin account created' in result.output
+        assert 'created' in result.output.lower(), (
+            f"seed-admin should print a 'created' confirmation; got output: {result.output!r}"
+        )
 
         user = User.query.filter_by(email='seeded@test.com').first()
-        assert user is not None
-        assert user.is_admin is True
-        assert user.email_verified is True
+        assert user is not None, "seed-admin did not insert a User row for ADMIN_EMAIL"
+        assert user.is_admin is True, (
+            f"seeded user should have is_admin=True; got {user.is_admin!r}"
+        )
+        assert user.email_verified is True, (
+            f"seeded admin should be pre-verified; got email_verified={user.email_verified!r}"
+        )
 
 
 # ---------------------------------------------------------------------------
