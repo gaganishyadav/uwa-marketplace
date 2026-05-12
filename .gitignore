@@ -18,3 +18,6 @@ app/static/uploads/
 
 # Local-only docs, sample images, and design assets (per-developer, not source)
 docs_and_others/
+
+# Selenium demo recordings (large binaries, not source)
+video_selenium_test/
