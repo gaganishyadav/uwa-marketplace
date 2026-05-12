@@ -10,12 +10,12 @@ invisible to the server thread). Each test gets a fresh database and a
 fresh Chrome browser instance.
 
 Run:
-    python -m pytest tests/test_selenium_messaging.py -v             # headed (default)
-    HEADLESS=1 python -m pytest tests/test_selenium_messaging.py -v  # bash/zsh
-    $env:HEADLESS="1"; python -m pytest tests/test_selenium_messaging.py -v  # PowerShell
+    python -m pytest tests/test_selenium_message_display.py -v             # headed (default)
+    HEADLESS=1 python -m pytest tests/test_selenium_message_display.py -v  # bash/zsh
+    $env:HEADLESS="1"; python -m pytest tests/test_selenium_message_display.py -v  # PowerShell
 
 Demo / screen-recording mode (slows each UI step to ~3s so viewers can follow):
-    $env:DEMO_PAUSE="3"; python -m pytest tests/test_selenium_messaging.py -v
+    $env:DEMO_PAUSE="3"; python -m pytest tests/test_selenium_message_display.py -v
 """
 
 import os
