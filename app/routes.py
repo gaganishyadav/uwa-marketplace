@@ -511,12 +511,34 @@ def init_routes(app):
     def register():
         form = RegistrationForm()
         if form.validate_on_submit():
-            if form.validate_email_duplicate():
-                return render_template('auth.html',
-                                       login_form=LoginForm(),
-                                       register_form=form,
-                                       active_tab='signup',
-                                       register_error='An account with this email already exists.')
+            existing = User.query.filter_by(email=form.email.data).first()
+            if existing:
+                if existing.email_verified:
+                    return render_template('auth.html',
+                                           login_form=LoginForm(),
+                                           register_form=form,
+                                           active_tab='signup',
+                                           register_error='An account with this email already exists.')
+                # Unverified account — update details and resend OTP
+                existing.display_name = form.display_name.data
+                existing.set_password(form.password.data)
+                otp = existing.generate_otp()
+                db.session.commit()
+                if not app.config.get('MAIL_SUPPRESS_SEND'):
+                    try:
+                        msg = MailMessage(
+                            'Your UWA Swap-Meet Verification Code',
+                            recipients=[existing.email],
+                            body=f'Here is your UWA Swap-Meet verification code: {otp}\n\nIf you didn\'t request this, please safely ignore this email.'
+                        )
+                        mail.send(msg)
+                    except Exception:
+                        app.logger.warning('Failed to send OTP email')
+                else:
+                    app.logger.warning(f'DEV MODE — OTP for {existing.email}: {otp}')
+                session.permanent = True
+                session['user_id'] = existing.id
+                return redirect(url_for('verify_otp'))
             user = User(display_name=form.display_name.data, email=form.email.data)
             user.set_password(form.password.data)
             otp = user.generate_otp()
@@ -529,7 +551,7 @@ def init_routes(app):
                     msg = MailMessage(
                         'Your UWA Swap-Meet Verification Code',
                         recipients=[user.email],
-                        body=f'Your verification code is: {otp}'
+                        body=f'Here is your UWA Swap-Meet verification code: {otp}\n\nIf you didn\'t request this, please safely ignore this email.'
                     )
                     mail.send(msg)
                 except Exception:
@@ -598,7 +620,7 @@ def init_routes(app):
                     msg = MailMessage(
                         'Your UWA Swap-Meet Verification Code',
                         recipients=[user.email],
-                        body=f'Your verification code is: {otp}'
+                        body=f'Here is your UWA Swap-Meet verification code: {otp}\n\nIf you didn\'t request this, please safely ignore this email.'
                     )
                     mail.send(msg)
                 except Exception:
