@@ -13,6 +13,9 @@ Run:
     python -m pytest tests/test_selenium_messaging.py -v             # headed (default)
     HEADLESS=1 python -m pytest tests/test_selenium_messaging.py -v  # bash/zsh
     $env:HEADLESS="1"; python -m pytest tests/test_selenium_messaging.py -v  # PowerShell
+
+Demo / screen-recording mode (slows each UI step to ~3s so viewers can follow):
+    $env:DEMO_PAUSE="3"; python -m pytest tests/test_selenium_messaging.py -v
 """
 
 import os
@@ -40,6 +43,11 @@ HOST = '127.0.0.1'
 PORT = 5555
 BASE_URL = f'http://{HOST}:{PORT}'
 HEADLESS = os.environ.get('HEADLESS', '0') == '1'
+
+# Seconds to pause between major UI steps when DEMO_PAUSE is set. Default 0
+# keeps regular test runs fast; set to ~3 when screen-recording the flow so
+# viewers can follow each step. Has no effect on assertions.
+DEMO_PAUSE = float(os.environ.get('DEMO_PAUSE', '0'))
 
 
 # ---------------------------------------------------------------------------
@@ -165,6 +173,12 @@ def driver():
 # Helpers
 # ---------------------------------------------------------------------------
 
+def _pause():
+    """Sleep between UI steps if DEMO_PAUSE is set. No-op in normal test runs."""
+    if DEMO_PAUSE > 0:
+        time.sleep(DEMO_PAUSE)
+
+
 def _wait_for_server(url, timeout=10):
     """Poll `url` until it responds with HTTP 200, or raise after `timeout`."""
     deadline = time.time() + timeout
@@ -234,19 +248,23 @@ def test_buyer_sends_message_and_seller_sees_it_in_inbox(driver, seeded_users):
 
     # --- Bob (buyer) logs in ----------------------------------------------
     _login(driver, 'bob@student.uwa.edu.au', 'Password1')
+    _pause()
 
     # --- Bob opens Alice's listing ----------------------------------------
     driver.get(f'{BASE_URL}/listing/{listing_id}')
+    _pause()
 
     # --- Bob opens the "Message Seller" modal -----------------------------
     wait.until(EC.element_to_be_clickable(
         (By.ID, 'btn-message-seller'))).click()
+    _pause()
 
     # --- Bob types and sends the message ----------------------------------
     msg_text = 'Hi Alice, is this textbook still available?'
     textarea = wait.until(EC.visibility_of_element_located(
         (By.ID, 'message-content')))
     textarea.send_keys(msg_text)
+    _pause()
     driver.find_element(By.ID, 'btn-send-message').click()
 
     # The send endpoint returns JSON {redirect: '/inbox?thread=...'} and
@@ -257,15 +275,19 @@ def test_buyer_sends_message_and_seller_sees_it_in_inbox(driver, seeded_users):
         message='Send did not trigger a redirect to /inbox -- the AJAX call '
                 'probably returned a 4xx (CSRF? auth? validation?).'
     )
+    _pause()
 
     # --- Bob logs out -----------------------------------------------------
     _logout(driver)
+    _pause()
 
     # --- Alice (seller) logs in ------------------------------------------
     _login(driver, 'alice@student.uwa.edu.au', 'Password1')
+    _pause()
 
     # --- Alice opens her inbox -------------------------------------------
     driver.get(f'{BASE_URL}/inbox')
+    _pause()
 
     # --- Assert: Alice sees the conversation -----------------------------
     inbox_rows = driver.find_elements(By.CSS_SELECTOR, '.inbox-row')
