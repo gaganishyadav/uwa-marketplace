@@ -1,6 +1,4 @@
-"""Unit tests for User model: password hashing, OTP, reset tokens, defaults."""
-
-from datetime import datetime, timedelta
+"""Unit tests for User model: password hashing, reset tokens, defaults."""
 
 from app import db
 from app.models import User, _utcnow
@@ -39,79 +37,6 @@ def test_password_hashing(app):
         )
 
 
-def test_otp_generation(app):
-    """OTP is a 6-digit string, validates correctly with the right code."""
-    with app.app_context():
-        user = User(display_name='OTP User', email='otp@student.uwa.edu.au')
-        user.set_password('Password1')
-        db.session.add(user)
-        db.session.commit()
-
-        otp = user.generate_otp()
-        # 6-digit string
-        assert len(otp) == 6, f"OTP should be exactly 6 chars; got {len(otp)} ({otp!r})"
-        assert otp.isdigit(), f"OTP should be all digits; got {otp!r}"
-        otp_int = int(otp)
-        assert 100000 <= otp_int <= 999999, (
-            f"OTP should fall in [100000, 999999]; got {otp_int} -- "
-            f"the leading-zero handling in generate_otp may be wrong"
-        )
-        # Valid with correct code
-        assert user.is_otp_valid(otp) is True, (
-            f"is_otp_valid rejected the just-generated OTP {otp!r} -- "
-            f"otp_created_at may not be set or the comparison window is wrong"
-        )
-        # Invalid with wrong code
-        assert user.is_otp_valid('000000') is False, (
-            "is_otp_valid accepted '000000' which was not the generated code -- "
-            "the code comparison is bypassed"
-        )
-
-
-def test_otp_expiry(app):
-    """OTP expires after 5 minutes."""
-    with app.app_context():
-        user = User(display_name='Expiry User', email='expiry@student.uwa.edu.au')
-        user.set_password('Password1')
-        db.session.add(user)
-        db.session.commit()
-
-        otp = user.generate_otp()
-        # Manually set OTP creation to 6 minutes ago
-        user.otp_created_at = _utcnow() - timedelta(minutes=6)
-        db.session.commit()
-        # Should be expired
-        assert user.is_otp_valid(otp) is False, (
-            "is_otp_valid accepted an OTP created 6 minutes ago; "
-            "the 5-minute expiry window (per D-08) is not being enforced"
-        )
-
-
-def test_otp_resend_cooldown(app):
-    """OTP resend enforces 60-second cooldown."""
-    with app.app_context():
-        user = User(display_name='Cooldown User', email='cooldown@student.uwa.edu.au')
-        user.set_password('Password1')
-        db.session.add(user)
-        db.session.commit()
-
-        user.generate_otp()
-        db.session.commit()
-        # Cannot resend immediately
-        assert user.can_resend_otp() is False, (
-            "can_resend_otp returned True immediately after generation; "
-            "the 60-second cooldown is not being applied"
-        )
-        # Set creation time to 61 seconds ago
-        user.otp_created_at = _utcnow() - timedelta(seconds=61)
-        db.session.commit()
-        # Can resend after cooldown
-        assert user.can_resend_otp() is True, (
-            "can_resend_otp returned False 61s after generation; "
-            "the cooldown calculation may be using > instead of >= or the wrong base time"
-        )
-
-
 def test_reset_token_generation_and_verification(app):
     """Reset token round-trips correctly, wrong key returns None."""
     with app.app_context():
@@ -133,7 +58,6 @@ def test_reset_token_generation_and_verification(app):
 def test_reset_token_invalid_token(app):
     """Reset token with tampered/invalid data returns None."""
     with app.app_context():
-        # Use a completely invalid token string
         result = User.verify_reset_token('invalid-token-data', app.config['SECRET_KEY'])
         assert result is None, (
             f"verify_reset_token returned {result!r} for an unsigned junk string; "
@@ -146,7 +70,6 @@ def test_reset_token_expiry(app):
     with app.app_context():
         email = 'expiry@student.uwa.edu.au'
         token = User.generate_reset_token(email, app.config['SECRET_KEY'])
-        # max_age=-1 means any age exceeds the limit (forces expiry)
         result = User.verify_reset_token(token, app.config['SECRET_KEY'], max_age=-1)
         assert result is None, (
             f"verify_reset_token returned {result!r} when max_age=-1 should have "
