@@ -86,7 +86,8 @@
             {% for conv in conversations %}
             {% set other_uid = conv.receiver_id if conv.sender_id == current_user_id else conv.sender_id %}
             {% set other_usr = conv.sender if conv.sender_id != current_user_id else conv.receiver %}
-            <a href="{{ url_for('inbox', thread=conv.listing_id, with_user=other_uid) }}" class="inbox-row">
+            <a href="{{ url_for('inbox', thread=conv.listing_id, with_user=other_uid) }}"
+               class="inbox-row{{ ' inbox-row--unread' if conv.unread }}">
                 <div class="inbox-row-thumb">
                     {% if conv.listing and conv.listing.image_path and conv.listing.status != 'deleted' %}
                     <img src="{{ url_for('static', filename='uploads/' + conv.listing.image_path) }}" alt="">
@@ -107,6 +108,9 @@
                 <div class="inbox-row-meta">
                     <span class="inbox-row-name">{{ other_usr.display_name if other_usr else 'Unknown' }}</span>
                     <span class="inbox-row-time">{{ conv.created_at|local_time }}</span>
+                    {% if conv.unread %}
+                    <span class="inbox-row-unread" aria-label="{{ conv.unread }} unread message{{ 's' if conv.unread != 1 }}">{{ conv.unread if conv.unread < 100 else '99+' }}</span>
+                    {% endif %}
                     {% if conv.listing and conv.listing.status == 'sold' %}
                     <span class="ad-card-status status-sold" style="font-size:0.5rem;">Sold</span>
                     {% endif %}

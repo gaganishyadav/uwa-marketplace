@@ -9,12 +9,21 @@
             <a href="{{ url_for('gallery') }}" class="nav-link">Browse</a>
             <button class="btn-primary btn-post-nav" id="nav-post-btn">+ List an Item</button>
             <div class="nav-avatar-wrapper">
-                <button class="nav-avatar" id="nav-avatar-btn" aria-expanded="false" aria-haspopup="true">
+                <button class="nav-avatar" id="nav-avatar-btn" aria-expanded="false" aria-haspopup="true"
+                        {% if unread_count %}aria-label="{{ unread_count }} unread message{{ 's' if unread_count != 1 }}"{% endif %}>
                     {% if user %}{{ user.display_name[0] | upper }}{% else %}U{% endif %}
+                    {% if unread_count %}
+                    <span class="nav-badge" aria-hidden="true">{{ unread_count if unread_count < 10 else '9+' }}</span>
+                    {% endif %}
                 </button>
                 <div class="nav-dropdown" id="nav-dropdown">
                     <a href="{{ url_for('dashboard') }}" class="nav-dropdown-item">My Dashboard</a>
-                    <a href="{{ url_for('inbox') }}" class="nav-dropdown-item">Inbox</a>
+                    <a href="{{ url_for('inbox') }}" class="nav-dropdown-item nav-dropdown-item--with-badge">
+                        Inbox
+                        {% if unread_count %}
+                        <span class="nav-dropdown-badge">{{ unread_count if unread_count < 100 else '99+' }}</span>
+                        {% endif %}
+                    </a>
                     <a href="{{ url_for('gallery') }}" class="nav-dropdown-item">Browse Listings</a>
                     <div class="nav-dropdown-divider"></div>
                     <form action="{{ url_for('logout') }}" method="post" style="display:inline">
