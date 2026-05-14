@@ -6,6 +6,12 @@ on-campus meetup spots powered by an interactive map of UWA buildings.
 
 This is a CITS5505 Agile Web Development group project (Semester 1, 2026).
 
+<img width="1189" height="670" alt="login_page" src="https://github.com/user-attachments/assets/54364f46-7935-4a50-bd52-1df1827f3a87" />
+
+<img width="1789" height="1312" alt="browse_page" src="https://github.com/user-attachments/assets/3bc3e4b6-3918-47f3-9165-56d7f9f872f7" />
+
+
+
 ## What it does
 
 - **Sellers** list items with photos, prices, categories, and a meetup spot
