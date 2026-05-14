@@ -102,6 +102,19 @@ $(document).ready(function () {
             $chatContainer.scrollTop($chatContainer[0].scrollHeight);
         });
 
+        // Server-side rejection (e.g. rate limit) -- surface to the user
+        // and put the unsent draft back in the input so they can wait + retry.
+        socket.on('send_error', function (data) {
+            var msg = (data && data.error) || 'Could not send message.';
+            var $errors = $('#thread-reply-errors');
+            if ($errors.length) {
+                $errors.text(msg).show();
+                setTimeout(function () { $errors.fadeOut(); }, 5000);
+            } else {
+                window.alert(msg);
+            }
+        });
+
         // Typing indicator
         var typingTimeout = null;
         socket.on('user_typing', function (data) {
