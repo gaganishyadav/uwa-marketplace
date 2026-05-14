@@ -1,7 +1,7 @@
 """add login lockout columns to user
 
 Revision ID: 740c57fee4b8
-Revises: 26b5eee91594
+Revises: 464604cb0039
 Create Date: 2026-05-11 19:41:13.511476
 
 """
@@ -11,7 +11,11 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '740c57fee4b8'
-down_revision = '26b5eee91594'
+# Re-parented from '26b5eee91594' to '464604cb0039' (the read_at migration
+# merged to main in parallel with this branch) so Alembic has a single head
+# after merge -- otherwise `flask db upgrade` fails with
+# "Multiple head revisions are present".
+down_revision = '464604cb0039'
 branch_labels = None
 depends_on = None
 
