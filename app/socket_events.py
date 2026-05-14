@@ -1,4 +1,4 @@
-from flask import session
+from flask import request, session
 from flask_socketio import join_room, leave_room
 from flask_wtf.csrf import validate_csrf
 from wtforms.validators import ValidationError
@@ -97,6 +97,16 @@ def register_socket_events():
             ((Message.sender_id == other_user_id) & (Message.receiver_id == user_id))
         ).first()
         if not existing:
+            return
+
+        # Per-sender rate limit (anti-spam). Mirrors the guard on
+        # /send-message and /thread-reply; otherwise an abusive client
+        # could bypass throttling by going straight through the socket.
+        if Message.is_sender_rate_limited(user_id):
+            socketio.emit('send_error', {
+                'error': (f'You are sending messages too quickly. Please wait a moment '
+                          f'(limit: {Message.RATE_LIMIT} per minute).')
+            }, to=request.sid)
             return
 
         msg = Message(
