@@ -1,10 +1,11 @@
 import os
+import secrets
 import uuid
-from datetime import timedelta
+from datetime import timedelta, datetime, timezone
 from functools import wraps
 
 from flask import abort, redirect, url_for, session, render_template, flash, request, current_app, jsonify
-from flask_mail import Message
+from flask_mail import Message as MailMessage
 from werkzeug.utils import secure_filename
 
 from app import db, mail
@@ -51,6 +52,16 @@ def admin_required(f):
     return decorated
 
 
+def pending_registration_required(f):
+    """Redirect to /auth if no pending registration in session."""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if 'pending_registration' not in session:
+            return redirect(url_for('auth'))
+        return f(*args, **kwargs)
+    return decorated
+
+
 def init_routes(app):
     """Register all application routes directly on the app (no blueprints, per D-01)."""
 
@@ -58,13 +69,76 @@ def init_routes(app):
     # Helpers
     # ------------------------------------------------------------------
 
+    def _generate_otp():
+        return str(secrets.randbelow(900000) + 100000)
+
+    def _is_otp_valid(pending, code):
+        otp_code = pending.get('otp_code')
+        otp_created_at_str = pending.get('otp_created_at')
+        if not otp_code or not otp_created_at_str:
+            return False
+        if otp_code != code:
+            return False
+        otp_created_at = datetime.fromisoformat(otp_created_at_str)
+        return datetime.now(timezone.utc).replace(tzinfo=None) < otp_created_at + timedelta(minutes=5)
+
+    def _can_resend_otp(pending):
+        otp_sent_at_str = pending.get('otp_sent_at')
+        if not otp_sent_at_str:
+            return True
+        otp_sent_at = datetime.fromisoformat(otp_sent_at_str)
+        return datetime.now(timezone.utc).replace(tzinfo=None) >= otp_sent_at + timedelta(seconds=60)
+
+    def _send_otp_email(email, otp):
+        if not app.config.get('MAIL_SUPPRESS_SEND'):
+            try:
+                msg = MailMessage(
+                    'Your UWA Swap-Meet Verification Code',
+                    recipients=[email],
+                    body=f'Here is your UWA Swap-Meet verification code: {otp}\n\nIf you didn\'t request this, please safely ignore this email.'
+                )
+                mail.send(msg)
+            except Exception:
+                app.logger.warning('Failed to send OTP email')
+        else:
+            app.logger.warning(f'DEV MODE — OTP for {email}: {otp}')
+
+    # Magic-byte signatures for the image formats we accept. Checked alongside
+    # the file extension so a renamed binary (e.g. malware.exe.jpg) is rejected
+    # even though its extension passes the whitelist.
+    _JPEG_MAGIC = b'\xff\xd8\xff'
+    _PNG_MAGIC = b'\x89PNG\r\n\x1a\n'
+
+    def _sniff_image_type(stream):
+        """Return 'jpeg', 'png', or None by reading the first 8 bytes.
+        Leaves the stream position unchanged."""
+        pos = stream.tell()
+        head = stream.read(8)
+        stream.seek(pos)
+        if head.startswith(_JPEG_MAGIC):
+            return 'jpeg'
+        if head.startswith(_PNG_MAGIC):
+            return 'png'
+        return None
+
     def save_upload(file_storage, upload_folder):
-        """Save uploaded file with UUID name. Returns filename or None."""
+        """Save uploaded file with UUID name. Returns filename or None.
+        Validates both the file extension and the magic bytes so that a
+        file's content must genuinely match its claimed type."""
         if not file_storage or not file_storage.filename:
             return None
         original = secure_filename(file_storage.filename)
         ext = os.path.splitext(original)[1].lower()
-        if ext.lstrip('.') not in {'jpg', 'jpeg', 'png'}:
+        ext_clean = ext.lstrip('.')
+        if ext_clean not in {'jpg', 'jpeg', 'png'}:
+            return None
+        # Sniff magic bytes and require them to match the claimed extension
+        detected = _sniff_image_type(file_storage.stream)
+        if detected is None:
+            return None
+        if detected == 'jpeg' and ext_clean not in {'jpg', 'jpeg'}:
+            return None
+        if detected == 'png' and ext_clean != 'png':
             return None
         filename = f"{uuid.uuid4().hex}{ext}"
         os.makedirs(upload_folder, exist_ok=True)
@@ -494,6 +568,14 @@ def init_routes(app):
             db.session.commit()
         return redirect(url_for('inbox', thread=listing_id, with_user=with_user_id))
 
+    @app.route('/api/unread-count')
+    @email_verified_required
+    def api_unread_count():
+        count = Message.query.filter_by(
+            receiver_id=session['user_id'], read_at=None
+        ).count()
+        return jsonify({'count': count})
+
     # ------------------------------------------------------------------
     # Auth routes
     # ------------------------------------------------------------------
@@ -514,34 +596,32 @@ def init_routes(app):
     def register():
         form = RegistrationForm()
         if form.validate_on_submit():
-            if form.validate_email_duplicate():
-                return render_template('auth.html',
-                                       login_form=LoginForm(),
-                                       register_form=form,
-                                       active_tab='signup',
-                                       register_error='An account with this email already exists.')
-            user = User(display_name=form.display_name.data, email=form.email.data)
-            user.set_password(form.password.data)
-            otp = user.generate_otp()
-            db.session.add(user)
-            db.session.commit()
-
-            # Send OTP email
-            if not app.config.get('MAIL_SUPPRESS_SEND'):
-                try:
-                    msg = Message(
-                        'Your UWA Swap-Meet Verification Code',
-                        recipients=[user.email],
-                        body=f'Your verification code is: {otp}'
-                    )
-                    mail.send(msg)
-                except Exception:
-                    app.logger.warning('Failed to send OTP email')
-            else:
-                app.logger.warning(f'DEV MODE — OTP for {user.email}: {otp}')
-
+            existing = User.query.filter_by(email=form.email.data).first()
+            if existing:
+                if existing.email_verified:
+                    return render_template('auth.html',
+                                           login_form=LoginForm(),
+                                           register_form=form,
+                                           active_tab='signup',
+                                           register_error='An account with this email already exists.')
+                # Old unverified account — delete it so we use session-based flow
+                if not existing.is_admin:
+                    db.session.delete(existing)
+                    db.session.commit()
+            # Store pending registration in session
+            from werkzeug.security import generate_password_hash
+            now = datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
+            otp = _generate_otp()
             session.permanent = True
-            session['user_id'] = user.id
+            session['pending_registration'] = {
+                'display_name': form.display_name.data,
+                'email': form.email.data,
+                'password_hash': generate_password_hash(form.password.data),
+                'otp_code': otp,
+                'otp_created_at': now,
+                'otp_sent_at': now,
+            }
+            _send_otp_email(form.email.data, otp)
             return redirect(url_for('verify_otp'))
 
         return render_template('auth.html',
@@ -556,10 +636,14 @@ def init_routes(app):
         if form.validate_on_submit():
             user = User.query.filter_by(email=form.email.data).first()
             if user and user.check_password(form.password.data):
+                if not user.email_verified:
+                    if not user.is_admin:
+                        db.session.delete(user)
+                        db.session.commit()
+                    flash('Your registration was never completed. Please sign up again.', 'error')
+                    return redirect(url_for('auth'))
                 session.permanent = True
                 session['user_id'] = user.id
-                if not user.email_verified:
-                    return redirect(url_for('verify_otp'))
                 return redirect(url_for('gallery'))
             login_error = 'Invalid email or password.'
         return render_template('auth.html',
@@ -569,45 +653,42 @@ def init_routes(app):
                                login_error=login_error)
 
     @app.route('/verify-otp', methods=['GET', 'POST'])
-    @login_required
+    @pending_registration_required
     def verify_otp():
-        user = db.session.get(User, session['user_id'])
-        if user is None:
-            session.clear()
+        pending = session['pending_registration']
+        if not pending.get('email'):
+            session.pop('pending_registration', None)
             return redirect(url_for('auth'))
-        if user.email_verified:
-            return redirect(url_for('gallery'))
         form = OTPForm()
         if form.validate_on_submit():
-            if user.is_otp_valid(form.otp_code.data):
-                user.email_verified = True
+            if _is_otp_valid(pending, form.otp_code.data):
+                user = User(
+                    display_name=pending['display_name'],
+                    email=pending['email'],
+                    password_hash=pending['password_hash'],
+                    email_verified=True,
+                )
+                db.session.add(user)
                 db.session.commit()
+                session.pop('pending_registration', None)
+                session.permanent = True
+                session['user_id'] = user.id
                 return redirect(url_for('gallery'))
             flash('Invalid or expired verification code.', 'error')
-        return render_template('verify_otp.html', form=form, user_email=user.email)
+        return render_template('verify_otp.html', form=form, user_email=pending['email'])
 
     @app.route('/resend-otp', methods=['POST'])
-    @login_required
+    @pending_registration_required
     def resend_otp():
-        user = db.session.get(User, session['user_id'])
-        if user is None:
-            session.clear()
-            return redirect(url_for('auth'))
-        if user.can_resend_otp():
-            otp = user.generate_otp()
-            db.session.commit()
-            if not current_app.config.get('MAIL_SUPPRESS_SEND'):
-                try:
-                    msg = Message(
-                        'Your UWA Swap-Meet Verification Code',
-                        recipients=[user.email],
-                        body=f'Your verification code is: {otp}'
-                    )
-                    mail.send(msg)
-                except Exception:
-                    app.logger.warning('Failed to send OTP email')
-            else:
-                app.logger.warning(f'DEV MODE — OTP for {user.email}: {otp}')
+        pending = session['pending_registration']
+        if _can_resend_otp(pending):
+            now = datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
+            otp = _generate_otp()
+            pending['otp_code'] = otp
+            pending['otp_created_at'] = now
+            pending['otp_sent_at'] = now
+            session['pending_registration'] = pending
+            _send_otp_email(pending['email'], otp)
             flash('A new verification code has been sent.', 'success')
         else:
             flash('Please wait before requesting a new code.', 'error')
@@ -622,7 +703,7 @@ def init_routes(app):
                 token = User.generate_reset_token(user.email, app.secret_key)
                 reset_url = url_for('reset_password', token=token, _external=True)
                 try:
-                    msg = Message(
+                    msg = MailMessage(
                         'Reset Your UWA Swap-Meet Password',
                         recipients=[user.email],
                         body=f'Click here to reset your password: {reset_url}'

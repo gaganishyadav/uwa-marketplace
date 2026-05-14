@@ -1,4 +1,3 @@
-import secrets
 from datetime import datetime, timedelta, timezone
 
 from flask import current_app
@@ -37,28 +36,6 @@ class User(db.Model):
     def check_password(self, password):
         """Verify password against stored hash."""
         return check_password_hash(self.password_hash, password)
-
-    def generate_otp(self):
-        """Generate a 6-digit cryptographically secure OTP (per D-08)."""
-        self.otp_code = str(secrets.randbelow(900000) + 100000)
-        self.otp_created_at = _utcnow()
-        return self.otp_code
-
-    def is_otp_valid(self, code):
-        """Check if provided OTP matches and is within 5-minute window (per D-08)."""
-        if not self.otp_code or not self.otp_created_at:
-            return False
-        if self.otp_code != code:
-            return False
-        expiry = self.otp_created_at + timedelta(minutes=5)
-        return _utcnow() < expiry
-
-    def can_resend_otp(self):
-        """Check if 60-second cooldown has passed since last OTP (per D-08)."""
-        if not self.otp_created_at:
-            return True
-        cooldown = self.otp_created_at + timedelta(seconds=60)
-        return _utcnow() >= cooldown
 
     @staticmethod
     def generate_reset_token(email, secret_key):
@@ -111,6 +88,7 @@ class Message(db.Model):
     receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=_utcnow, nullable=False)
+    read_at = db.Column(db.DateTime, nullable=True)
 
     listing = db.relationship('Listing', backref=db.backref('messages', lazy='dynamic'))
     sender = db.relationship('User', foreign_keys=[sender_id],
@@ -121,6 +99,7 @@ class Message(db.Model):
     __table_args__ = (
         db.Index('ix_message_listing_created', 'listing_id', 'created_at'),
         db.Index('ix_message_receiver_created', 'receiver_id', 'created_at'),
+        db.Index('ix_message_receiver_read', 'receiver_id', 'read_at'),
     )
 
     @classmethod

@@ -184,7 +184,7 @@ body {
     display: flex;
     align-items: center;
     padding-top: 80px;
-    overflow: hidden;
+    overflow: auto;
 }
 
 .hero-background {
@@ -522,7 +522,7 @@ section {
     justify-content: center;
     padding: var(--space-md);
     position: relative;
-    overflow: hidden;
+    overflow: auto;
 }
 
 .auth-page > main {
@@ -1130,7 +1130,7 @@ section {
 .ad-card {
     background: var(--color-surface-lowest);
     border-radius: var(--radius-lg);
-    overflow: hidden;
+    overflow: auto;
     transition: transform var(--transition-normal);
 }
 
@@ -1146,7 +1146,7 @@ section {
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
+    overflow: auto;
 }
 
 .ad-card-image img {
@@ -1225,7 +1225,7 @@ section {
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
-    overflow: hidden;
+    overflow: auto;
 }
 
 .ad-card-price {
@@ -1574,7 +1574,7 @@ section {
 
 .item-image {
     border-radius: var(--radius-lg);
-    overflow: hidden;
+    overflow: auto;
     background: var(--color-surface-low);
 }
 
@@ -1689,7 +1689,7 @@ section {
     width: 100%;
     height: 280px;
     border-radius: var(--radius-md);
-    overflow: hidden;
+    overflow: auto;
     border: 1.5px solid var(--color-surface-low);
 }
 
@@ -2211,7 +2211,7 @@ section {
     width: 48px;
     height: 48px;
     border-radius: var(--radius-md);
-    overflow: hidden;
+    overflow: auto;
     background: var(--color-surface-low);
     flex-shrink: 0;
     display: flex;
@@ -2445,7 +2445,7 @@ section {
     width: 100%;
     height: 280px;
     border-radius: var(--radius-md, 8px);
-    overflow: hidden;
+    overflow: auto;
     margin-top: 8px;
     border: 1.5px solid var(--border, #e2e8f0);
 }

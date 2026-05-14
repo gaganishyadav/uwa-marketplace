@@ -1,6 +1,4 @@
-"""Unit tests for User model: password hashing, OTP, reset tokens, defaults."""
-
-from datetime import datetime, timedelta
+"""Unit tests for User model: password hashing, reset tokens, defaults."""
 
 from app import db
 from app.models import User, _utcnow
@@ -19,67 +17,24 @@ def test_password_hashing(app):
         db.session.commit()
 
         # Hash is not plaintext
-        assert user1.password_hash != 'Password1'
+        assert user1.password_hash != 'Password1', (
+            "password is being stored in plaintext -- set_password is not hashing"
+        )
         # Same password, different hashes (salt)
-        assert user1.password_hash != user2.password_hash
+        assert user1.password_hash != user2.password_hash, (
+            "two users with the same password got identical hashes -- "
+            "set_password is not using a per-user salt (pbkdf2:sha256 should)"
+        )
         # Correct password verified
-        assert user1.check_password('Password1') is True
+        assert user1.check_password('Password1') is True, (
+            "check_password rejected the correct password -- the hash/verify "
+            "pair is mismatched"
+        )
         # Wrong password rejected
-        assert user1.check_password('wrong') is False
-
-
-def test_otp_generation(app):
-    """OTP is a 6-digit string, validates correctly with the right code."""
-    with app.app_context():
-        user = User(display_name='OTP User', email='otp@student.uwa.edu.au')
-        user.set_password('Password1')
-        db.session.add(user)
-        db.session.commit()
-
-        otp = user.generate_otp()
-        # 6-digit string
-        assert len(otp) == 6
-        assert otp.isdigit()
-        assert 100000 <= int(otp) <= 999999
-        # Valid with correct code
-        assert user.is_otp_valid(otp) is True
-        # Invalid with wrong code
-        assert user.is_otp_valid('000000') is False
-
-
-def test_otp_expiry(app):
-    """OTP expires after 5 minutes."""
-    with app.app_context():
-        user = User(display_name='Expiry User', email='expiry@student.uwa.edu.au')
-        user.set_password('Password1')
-        db.session.add(user)
-        db.session.commit()
-
-        otp = user.generate_otp()
-        # Manually set OTP creation to 6 minutes ago
-        user.otp_created_at = _utcnow() - timedelta(minutes=6)
-        db.session.commit()
-        # Should be expired
-        assert user.is_otp_valid(otp) is False
-
-
-def test_otp_resend_cooldown(app):
-    """OTP resend enforces 60-second cooldown."""
-    with app.app_context():
-        user = User(display_name='Cooldown User', email='cooldown@student.uwa.edu.au')
-        user.set_password('Password1')
-        db.session.add(user)
-        db.session.commit()
-
-        user.generate_otp()
-        db.session.commit()
-        # Cannot resend immediately
-        assert user.can_resend_otp() is False
-        # Set creation time to 61 seconds ago
-        user.otp_created_at = _utcnow() - timedelta(seconds=61)
-        db.session.commit()
-        # Can resend after cooldown
-        assert user.can_resend_otp() is True
+        assert user1.check_password('wrong') is False, (
+            "check_password accepted an obviously wrong password -- "
+            "verification logic is bypassed"
+        )
 
 
 def test_reset_token_generation_and_verification(app):
@@ -88,18 +43,26 @@ def test_reset_token_generation_and_verification(app):
         email = 'reset@student.uwa.edu.au'
         token = User.generate_reset_token(email, app.config['SECRET_KEY'])
         verified = User.verify_reset_token(token, app.config['SECRET_KEY'])
-        assert verified == email
+        assert verified == email, (
+            f"reset token did not round-trip the email: encoded={email!r}, "
+            f"decoded={verified!r}"
+        )
         # Wrong secret key returns None
         wrong = User.verify_reset_token(token, 'wrong-secret-key')
-        assert wrong is None
+        assert wrong is None, (
+            f"verify_reset_token returned {wrong!r} for a token signed with a "
+            f"different secret -- signature verification is bypassed"
+        )
 
 
 def test_reset_token_invalid_token(app):
     """Reset token with tampered/invalid data returns None."""
     with app.app_context():
-        # Use a completely invalid token string
         result = User.verify_reset_token('invalid-token-data', app.config['SECRET_KEY'])
-        assert result is None
+        assert result is None, (
+            f"verify_reset_token returned {result!r} for an unsigned junk string; "
+            f"BadSignature is not being caught"
+        )
 
 
 def test_reset_token_expiry(app):
@@ -107,9 +70,11 @@ def test_reset_token_expiry(app):
     with app.app_context():
         email = 'expiry@student.uwa.edu.au'
         token = User.generate_reset_token(email, app.config['SECRET_KEY'])
-        # max_age=-1 means any age exceeds the limit (forces expiry)
         result = User.verify_reset_token(token, app.config['SECRET_KEY'], max_age=-1)
-        assert result is None
+        assert result is None, (
+            f"verify_reset_token returned {result!r} when max_age=-1 should have "
+            f"forced expiry; SignatureExpired is not being caught"
+        )
 
 
 def test_user_default_fields(app):
@@ -120,7 +85,17 @@ def test_user_default_fields(app):
         db.session.add(user)
         db.session.commit()
 
-        assert user.email_verified is False
-        assert user.created_at is not None
-        assert user.display_name == 'Default User'
-        assert user.email == 'default@student.uwa.edu.au'
+        assert user.email_verified is False, (
+            f"new users should default to email_verified=False; "
+            f"got {user.email_verified!r}"
+        )
+        assert user.created_at is not None, (
+            "created_at default was not applied -- the column default factory may "
+            "have been removed"
+        )
+        assert user.display_name == 'Default User', (
+            f"display_name was not persisted as supplied; got {user.display_name!r}"
+        )
+        assert user.email == 'default@student.uwa.edu.au', (
+            f"email was not persisted as supplied; got {user.email!r}"
+        )

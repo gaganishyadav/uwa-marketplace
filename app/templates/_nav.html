@@ -19,7 +19,7 @@
                     <div class="nav-dropdown-divider"></div>
                     <form action="{{ url_for('logout') }}" method="post" style="display:inline">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <button type="submit" class="nav-dropdown-item nav-dropdown-item--danger">Log Out</button>
+                        <button type="submit" id="btn-logout" class="nav-dropdown-item nav-dropdown-item--danger">Log Out</button>
                     </form>
                 </div>
             </div>

@@ -15,3 +15,9 @@ YuxingZhou_CITS5505_Development & Review_Log.md
 
 # User-uploaded listing photos (per-developer, not source)
 app/static/uploads/
+
+# Local-only docs, sample images, and design assets (per-developer, not source)
+docs_and_others/
+
+# Selenium demo recordings (large binaries, not source)
+video_selenium_test/
