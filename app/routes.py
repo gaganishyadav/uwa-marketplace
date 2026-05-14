@@ -635,17 +635,32 @@ def init_routes(app):
         login_error = None
         if form.validate_on_submit():
             user = User.query.filter_by(email=form.email.data).first()
-            if user and user.check_password(form.password.data):
+            # Reject early if this account is in a lockout window. Phrased generically
+            # so we don't reveal whether the email exists to an attacker.
+            if user and user.is_locked_out():
+                minutes = max(1, user.lockout_remaining_seconds() // 60)
+                login_error = (f'Account temporarily locked due to repeated failed '
+                               f'attempts. Try again in {minutes} minute'
+                               f'{"s" if minutes != 1 else ""}.')
+            elif user and user.check_password(form.password.data):
+                # Stale, never-verified accounts are removed and the user is
+                # asked to sign up again (per main's session-based OTP flow)
                 if not user.email_verified:
                     if not user.is_admin:
                         db.session.delete(user)
                         db.session.commit()
                     flash('Your registration was never completed. Please sign up again.', 'error')
                     return redirect(url_for('auth'))
+                user.register_successful_login()
+                db.session.commit()
                 session.permanent = True
                 session['user_id'] = user.id
                 return redirect(url_for('gallery'))
-            login_error = 'Invalid email or password.'
+            else:
+                if user:
+                    user.register_failed_login()
+                    db.session.commit()
+                login_error = 'Invalid email or password.'
         return render_template('auth.html',
                                login_form=form,
                                register_form=RegistrationForm(),
