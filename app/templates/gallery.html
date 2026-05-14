@@ -36,7 +36,7 @@
         </div>
     </div>
 
-    <div class="gallery-grid" id="gallery-grid">
+    <div class="gallery-grid" id="gallery-grid" aria-live="polite" aria-busy="false">
         <span id="result-count" class="result-count">Showing {{ listings | length }} listing{{ 's' if listings | length != 1 else '' }}</span>
         {% if listings %}
             {% for listing in listings %}
@@ -45,7 +45,7 @@
         {% else %}
             <div class="ads-empty">
                 <div class="ads-empty-icon">
-                    <span class="material-symbols-outlined" style="font-size:3rem;opacity:0.4;">storefront</span>
+                    <span class="material-symbols-outlined" aria-hidden="true" style="font-size:3rem;opacity:0.4;">storefront</span>
                 </div>
                 <h3 class="ads-empty-title">No listings yet</h3>
                 <p class="ads-empty-desc">Be the first to post something on UWA Swap-Meet!</p>
