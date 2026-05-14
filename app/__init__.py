@@ -5,12 +5,14 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
 from flask_mail import Mail
+from flask_socketio import SocketIO
 from markupsafe import Markup, escape
 
 db = SQLAlchemy()
 migrate = Migrate()
 csrf = CSRFProtect()
 mail = Mail()
+socketio = SocketIO()
 
 PERTH_TZ = timezone(timedelta(hours=8))
 
@@ -56,6 +58,7 @@ def create_app(config=None):
     migrate.init_app(app, db)
     csrf.init_app(app)
     mail.init_app(app)
+    socketio.init_app(app, manage_session=False)
 
     # Render naive UTC datetimes as Perth local time (UTC+8, no DST).
     # Use this filter only inside HTML attributes (aria-label, title, etc.)
@@ -97,6 +100,10 @@ def create_app(config=None):
     # Import routes
     from app.routes import init_routes
     init_routes(app)
+
+    # Register WebSocket event handlers
+    from app.socket_events import register_socket_events
+    register_socket_events()
 
     # Seed command for development data (per D-13)
     @app.cli.command('seed')
