@@ -10,8 +10,8 @@
             <button class="btn-primary btn-post-nav" id="nav-post-btn">+ List an Item</button>
             <div class="nav-avatar-wrapper">
                 <button class="nav-avatar" id="nav-avatar-btn" aria-expanded="false" aria-haspopup="true"
-                        {% if unread_count %}aria-label="{{ unread_count }} unread message{{ 's' if unread_count != 1 }}"{% endif %}>
-                    {% if user %}{{ user.display_name[0] | upper }}{% else %}U{% endif %}
+                        aria-label="{% if unread_count %}Account menu, {{ unread_count }} unread message{{ 's' if unread_count != 1 }}{% else %}Account menu{% endif %}">
+                    <span aria-hidden="true">{% if user %}{{ user.display_name[0] | upper }}{% else %}U{% endif %}</span>
                     {% if unread_count %}
                     <span class="nav-badge" aria-hidden="true">{{ unread_count if unread_count < 10 else '9+' }}</span>
                     {% endif %}
