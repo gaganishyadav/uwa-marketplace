@@ -414,3 +414,116 @@ class TestMessageRateLimit:
                 f"the seller never sent anything; expected count 0, got {seller_count}. "
                 f"The query is leaking across senders."
             )
+
+
+class TestUnreadBadge:
+    """Phase 5.3: unread badge — context processor, mark-as-read, per-conv counts."""
+
+    def _seed_conversation(self, app, seller_email='seller-u@test.student.uwa.edu.au',
+                           buyer_email='buyer-u@test.student.uwa.edu.au', n_incoming=2,
+                           n_outgoing=1):
+        """Seed a listing with n_incoming messages from buyer and n_outgoing from seller.
+        Returns (seller_id, buyer_id, listing_id)."""
+        seller_id = _create_verified_user(app, 'Seller', seller_email)
+        buyer_id = _create_verified_user(app, 'Buyer', buyer_email)
+        listing_id = _create_listing(app, seller_id)
+        with app.app_context():
+            for i in range(n_incoming):
+                db.session.add(Message(
+                    listing_id=listing_id, sender_id=buyer_id,
+                    receiver_id=seller_id, content=f'hi {i}',
+                ))
+            for i in range(n_outgoing):
+                db.session.add(Message(
+                    listing_id=listing_id, sender_id=seller_id,
+                    receiver_id=buyer_id, content=f'reply {i}',
+                ))
+            db.session.commit()
+        return seller_id, buyer_id, listing_id
+
+    def test_unread_count_zero_for_anonymous(self, client):
+        """unread_count is 0 for visitors (no user_id in session)."""
+        resp = client.get('/')
+        assert resp.status_code == 200
+        # Anonymous nav shows no badge — no <span class="nav-badge"> in markup.
+        assert b'nav-badge' not in resp.data
+
+    def test_unread_count_in_nav_for_recipient(self, app, client):
+        """A recipient with 2 unread messages sees a badge with '2' in the nav."""
+        _, _, _ = self._seed_conversation(app, n_incoming=2, n_outgoing=1)
+        _login(client, 'seller-u@test.student.uwa.edu.au')
+        resp = client.get('/')
+        assert resp.status_code == 200
+        assert b'nav-badge' in resp.data, 'expected nav badge for user with unread messages'
+        # Seller has 2 unread incoming. The outgoing message does not count.
+        assert b'>2<' in resp.data
+
+    def test_unread_count_not_counted_for_sender(self, app, client):
+        """Sender's own outgoing messages don't contribute to their unread_count.
+
+        With n_incoming=0 and n_outgoing=2 the seller is purely a sender — they
+        have 0 incoming messages, so logging in as the seller should yield no
+        badge regardless of how many messages they've sent.
+        """
+        self._seed_conversation(
+            app,
+            seller_email='seller-u3@test.student.uwa.edu.au',
+            buyer_email='buyer-u3@test.student.uwa.edu.au',
+            n_incoming=0, n_outgoing=2,
+        )
+        _login(client, 'seller-u3@test.student.uwa.edu.au')
+        resp = client.get('/')
+        assert b'nav-badge' not in resp.data, (
+            'sender of outgoing messages should not see an unread badge for them'
+        )
+
+    def test_opening_thread_marks_messages_read(self, app, client):
+        """Opening a thread sets read_at on incoming unread messages for the viewer."""
+        seller_id, buyer_id, listing_id = self._seed_conversation(
+            app, n_incoming=3, n_outgoing=1,
+        )
+        _login(client, 'seller-u@test.student.uwa.edu.au')
+        # Open the thread
+        resp = client.get(f'/inbox?thread={listing_id}&with_user={buyer_id}')
+        assert resp.status_code == 200
+        with app.app_context():
+            still_unread = Message.query.filter_by(
+                receiver_id=seller_id, listing_id=listing_id, read_at=None,
+            ).count()
+            assert still_unread == 0, (
+                f'expected all incoming unread to be marked read after opening thread; '
+                f'{still_unread} still unread'
+            )
+            # Sender's own outgoing message must not have read_at set
+            outgoing = Message.query.filter_by(
+                sender_id=seller_id, listing_id=listing_id,
+            ).one()
+            assert outgoing.read_at is None, (
+                'outgoing message read_at should not be touched when sender opens the thread'
+            )
+
+    def test_inbox_list_shows_per_conversation_badge(self, app, client):
+        """Inbox list page renders a per-conversation unread count."""
+        _, buyer_id, listing_id = self._seed_conversation(
+            app, n_incoming=2, n_outgoing=0,
+        )
+        _login(client, 'seller-u@test.student.uwa.edu.au')
+        resp = client.get('/inbox')
+        assert resp.status_code == 200
+        # Row gets the unread modifier class and a count badge.
+        assert b'inbox-row--unread' in resp.data
+        assert b'inbox-row-unread' in resp.data
+        assert b'>2<' in resp.data
+
+    def test_inbox_badge_disappears_after_opening_thread(self, app, client):
+        """After visiting a thread, the inbox row no longer shows that conv as unread."""
+        _, buyer_id, listing_id = self._seed_conversation(
+            app, n_incoming=2, n_outgoing=0,
+        )
+        _login(client, 'seller-u@test.student.uwa.edu.au')
+        client.get(f'/inbox?thread={listing_id}&with_user={buyer_id}')
+        resp = client.get('/inbox')
+        assert resp.status_code == 200
+        assert b'inbox-row--unread' not in resp.data, (
+            'expected inbox row unread class to be gone after thread was opened'
+        )

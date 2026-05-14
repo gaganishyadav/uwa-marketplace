@@ -1473,6 +1473,47 @@ section {
     transform: scale(1.05);
 }
 
+/* Unread-message badge anchored to the nav avatar (WeChat-style red pill). */
+.nav-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: #d93025;
+    color: #fff;
+    font-family: var(--font-body);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    line-height: 18px;
+    text-align: center;
+    border: 2px solid var(--color-surface-lowest, #fff);
+    box-sizing: content-box;
+    pointer-events: none;
+}
+
+.nav-dropdown-item--with-badge {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+}
+
+.nav-dropdown-badge {
+    min-width: 20px;
+    height: 18px;
+    padding: 0 6px;
+    border-radius: 9px;
+    background: #d93025;
+    color: #fff;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    line-height: 18px;
+    text-align: center;
+}
+
 .nav-dropdown {
     position: absolute;
     top: calc(100% + 8px);
@@ -2273,6 +2314,25 @@ section {
 .inbox-row-time {
     font-size: 0.75rem;
     color: var(--color-outline);
+}
+
+.inbox-row--unread .inbox-row-title,
+.inbox-row--unread .inbox-row-preview {
+    font-weight: 700;
+    color: var(--color-on-surface);
+}
+
+.inbox-row-unread {
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 10px;
+    background: #d93025;
+    color: #fff;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    line-height: 20px;
+    text-align: center;
 }
 
 /* Thread View */

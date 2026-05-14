@@ -97,6 +97,18 @@ def create_app(config=None):
             user = db.session.get(User, flask_session['user_id'])
         return {'user': user}
 
+    # Expose total unread-message count to the nav for the WeChat-style badge.
+    # Returns 0 for anonymous users so templates can render unconditionally.
+    @app.context_processor
+    def inject_unread_count():
+        from app.models import Message
+        from flask import session as flask_session
+        uid = flask_session.get('user_id')
+        if not uid:
+            return {'unread_count': 0}
+        count = Message.query.filter_by(receiver_id=uid, read_at=None).count()
+        return {'unread_count': count}
+
     # Import routes
     from app.routes import init_routes
     init_routes(app)

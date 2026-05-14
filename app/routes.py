@@ -493,6 +493,14 @@ def init_routes(app):
                     Message.query.filter_by(listing_id=thread_listing_id).delete()
                     db.session.commit()
                     return redirect(url_for('inbox'))
+            # Mark this thread's unread messages as read for the viewer.
+            Message.query.filter_by(
+                listing_id=thread_listing_id,
+                sender_id=thread_with_user,
+                receiver_id=user_id,
+                read_at=None,
+            ).update({'read_at': _utcnow()}, synchronize_session=False)
+            db.session.commit()
             return render_template('inbox.html', mode='thread', messages=messages,
                                    thread_listing=listing, other_user=other_user,
                                    other_user_id=thread_with_user,
@@ -523,6 +531,21 @@ def init_routes(app):
                 Message.created_at == latest.c.last_at
             )
         ).order_by(Message.created_at.desc()).all()
+
+        # Per-conversation unread count: messages where the current user is
+        # the receiver and has not yet read them, grouped by (listing, sender).
+        unread_rows = db.session.query(
+            Message.listing_id,
+            Message.sender_id,
+            func.count(Message.id).label('n'),
+        ).filter(
+            Message.receiver_id == user_id,
+            Message.read_at.is_(None),
+        ).group_by(Message.listing_id, Message.sender_id).all()
+        unread_map = {(lid, sid): n for lid, sid, n in unread_rows}
+        for conv in conversations:
+            other_uid = conv.receiver_id if conv.sender_id == user_id else conv.sender_id
+            conv.unread = unread_map.get((conv.listing_id, other_uid), 0)
 
         return render_template('inbox.html', mode='list', conversations=conversations,
                                current_user_id=user_id)
