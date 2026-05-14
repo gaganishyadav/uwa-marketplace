@@ -34,9 +34,9 @@ upload validation against content-type spoofing.
 | UWA ID | Name | GitHub username |
 |--------|------|-----------------|
 | 24267814 | Yuxing Zhou | [@zyxasd707](https://github.com/zyxasd707) |
-| _TODO_ | Gaganish Yadav | [@gaganishyadav](https://github.com/gaganishyadav) |
-| _TODO_ | Nicholas Tiew | [@Nickguin](https://github.com/Nickguin) |
-| _TODO_ | Sawetr Suchit-rattanant | [@sawetr](https://github.com/sawetr) |
+| 24552039 | Gaganish Yadav | [@gaganishyadav](https://github.com/gaganishyadav) |
+| 24450531 | Nicholas Tiew | [@Nickguin](https://github.com/Nickguin) |
+| 24500678 | Sawetr Suchit-rattanant | [@sawetr](https://github.com/sawetr) |
 
 > Teammates: please replace the `TODO` cells with your UWA student IDs.
 
