@@ -78,6 +78,10 @@ class Listing(db.Model):
 class Message(db.Model):
     __tablename__ = 'message'
 
+    # Rate limit knobs (per-sender) used by routes to throttle abuse.
+    RATE_LIMIT = 20           # max messages
+    RATE_WINDOW_SECONDS = 60  # per rolling window
+
     id = db.Column(db.Integer, primary_key=True)
     listing_id = db.Column(db.Integer, db.ForeignKey('listing.id'), nullable=False)
     sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -97,3 +101,19 @@ class Message(db.Model):
         db.Index('ix_message_receiver_created', 'receiver_id', 'created_at'),
         db.Index('ix_message_receiver_read', 'receiver_id', 'read_at'),
     )
+
+    @classmethod
+    def recent_count_for_sender(cls, sender_id, window_seconds=None):
+        """Number of messages this sender has posted in the last `window_seconds`."""
+        if window_seconds is None:
+            window_seconds = cls.RATE_WINDOW_SECONDS
+        threshold = _utcnow() - timedelta(seconds=window_seconds)
+        return cls.query.filter(
+            cls.sender_id == sender_id,
+            cls.created_at >= threshold,
+        ).count()
+
+    @classmethod
+    def is_sender_rate_limited(cls, sender_id):
+        """True if `sender_id` has hit the per-window send limit."""
+        return cls.recent_count_for_sender(sender_id) >= cls.RATE_LIMIT
