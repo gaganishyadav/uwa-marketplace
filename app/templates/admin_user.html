@@ -44,7 +44,7 @@
                 {% else %}
                 <form action="{{ url_for('admin_ban_user', user_id=target_user.id) }}" method="post" style="display:inline">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn-secondary" style="color:#b38600;">Ban User</button>
+                    <button type="submit" id="btn-ban-user" class="btn-secondary" style="color:#b38600;">Ban User</button>
                 </form>
                 <form action="{{ url_for('admin_permanent_ban_user', user_id=target_user.id) }}" method="post" style="display:inline">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
