@@ -1,10 +1,10 @@
 {# Reusable Post/Edit Ad Modal — requires listing_form variable #}
-<div class="modal-overlay" id="modal-post-ad">
+<div class="modal-overlay" id="modal-post-ad" role="dialog" aria-modal="true" aria-labelledby="modal-post-ad-title">
     <div class="modal">
         <div class="modal-header">
-            <h2 class="modal-title">List an Item</h2>
-            <button class="modal-close" aria-label="Close">
-                <span class="material-symbols-outlined">close</span>
+            <h2 class="modal-title" id="modal-post-ad-title">List an Item</h2>
+            <button type="button" class="modal-close" aria-label="Close">
+                <span class="material-symbols-outlined" aria-hidden="true">close</span>
             </button>
         </div>
         <form id="form-post-ad" action="{{ url_for('create_listing') }}" method="post" enctype="multipart/form-data">
