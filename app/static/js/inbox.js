@@ -80,7 +80,7 @@ $(document).ready(function () {
         var currentUserId = parseInt($chatContainer.data('current-user-id'), 10);
         var csrfToken = $('meta[name="csrf-token"]').attr('content');
 
-        var socket = io();
+        var socket = window.notifSocket || io();
 
         socket.on('connect', function () {
             socket.emit('join_thread', {

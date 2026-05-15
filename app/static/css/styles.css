@@ -2172,6 +2172,7 @@ section {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
+    justify-content: flex-end;
 }
 
 .chat-bubble {
