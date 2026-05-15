@@ -561,6 +561,7 @@ section {
     align-items: center;
     justify-content: center;
     padding: var(--space-md);
+    padding-top: calc(var(--space-md) + 60px);
     position: relative;
     overflow: auto;
 }
