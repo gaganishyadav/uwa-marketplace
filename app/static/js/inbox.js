@@ -80,7 +80,7 @@ $(document).ready(function () {
         var currentUserId = parseInt($chatContainer.data('current-user-id'), 10);
         var csrfToken = $('meta[name="csrf-token"]').attr('content');
 
-        var socket = io();
+        var socket = window.notifSocket || io();
 
         socket.on('connect', function () {
             socket.emit('join_thread', {
@@ -92,13 +92,46 @@ $(document).ready(function () {
         // Receive new messages in real-time
         socket.on('new_message', function (data) {
             var bubbleClass = data.sender_id === currentUserId ? 'chat-bubble--sent' : 'chat-bubble--received';
+            var iso = data.created_at_iso;
+            var d = new Date(iso);
+
+            // Perth time fallback (matches server-side local_time filter)
+            var perthStr = '';
+            if (!isNaN(d.getTime())) {
+                perthStr = new Intl.DateTimeFormat('en-AU', {
+                    day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false,
+                    timeZone: 'Australia/Perth'
+                }).format(d);
+            }
+
+            var senderLabel = data.sender_id === currentUserId ? 'You' : escapeHtml(data.sender_name);
+            var timeEl = '<time class="local-time" datetime="' + escapeHtml(iso) + '" data-format="%d %b %H:%M"'
+                + ' title="Perth time: ' + escapeHtml(perthStr) + '"'
+                + ' aria-label="' + senderLabel + ' at ' + escapeHtml(perthStr) + '">'
+                + escapeHtml(perthStr || iso) + '</time>';
+
             var bubble = $(
                 '<div class="chat-bubble ' + bubbleClass + '">' +
                     '<div>' + escapeHtml(data.content) + '</div>' +
-                    '<div class="chat-bubble-time">' + escapeHtml(data.created_at_formatted) + '</div>' +
+                    '<div class="chat-bubble-time">' + timeEl + '</div>' +
                 '</div>'
             );
             $chatContainer.append(bubble);
+
+            // Apply browser-local formatting (mirrors local_time.js)
+            var timeNode = bubble.find('time.local-time')[0];
+            if (timeNode && !isNaN(d.getTime()) && perthStr) {
+                var browserLang = navigator.language || '';
+                var locale = browserLang.indexOf('en') === 0 ? browserLang : 'en-AU';
+                var opts = { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false };
+                try {
+                    var localStr = new Intl.DateTimeFormat(locale, opts).format(d);
+                    if (localStr && localStr !== perthStr) {
+                        timeNode.textContent = localStr;
+                    }
+                } catch (e) { /* keep Perth fallback */ }
+            }
+
             $chatContainer.scrollTop($chatContainer[0].scrollHeight);
         });
 
@@ -124,6 +157,14 @@ $(document).ready(function () {
             typingTimeout = setTimeout(function () {
                 $('.typing-indicator').hide();
             }, 2000);
+        });
+
+        // Enter to send, Shift+Enter for newline
+        $('#thread-reply-content').on('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                $('#form-thread-reply').trigger('submit');
+            }
         });
 
         // Intercept thread reply form — send via WebSocket instead of HTTP POST

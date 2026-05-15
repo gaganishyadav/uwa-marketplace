@@ -1,3 +1,5 @@
+from datetime import timezone
+
 from flask import request, session
 from flask_socketio import join_room, leave_room
 from flask_wtf.csrf import validate_csrf
@@ -18,6 +20,7 @@ def register_socket_events():
     def handle_connect():
         if 'user_id' not in session:
             return False
+        join_room(f"user_{session['user_id']}")
 
     @socketio.on('join_thread')
     def handle_join_thread(data):
@@ -125,8 +128,16 @@ def register_socket_events():
             'sender_id': user_id,
             'sender_name': sender.display_name if sender else 'Unknown',
             'content': msg.content,
-            'created_at_formatted': msg.created_at.strftime('%d %b %H:%M'),
+            'created_at_iso': msg.created_at.replace(tzinfo=timezone.utc).isoformat(),
         }, room=room)
+
+        # Push updated unread count to the receiver's personal room
+        unread_count = Message.query.filter_by(
+            receiver_id=other_user_id, read_at=None
+        ).count()
+        socketio.emit('unread_notification', {
+            'count': unread_count,
+        }, room=f"user_{other_user_id}")
 
     @socketio.on('typing')
     def handle_typing(data):

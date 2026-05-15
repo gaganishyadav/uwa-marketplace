@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% block title %}Messages - UWA Swap-Meet{% endblock %}
 {% block content %}
-<section class="inbox-page">
-    <div style="max-width:800px;margin:0 auto;padding:0 var(--space-md);">
+<section class="inbox-page{% if mode == 'thread' %} inbox-page--thread{% endif %}">
+    <div{% if mode != 'thread' %} style="max-width:800px;margin:0 auto;padding:0 var(--space-md);"{% endif %} class="{% if mode == 'thread' %}thread-page{% endif %}">
 
         {% if mode == 'thread' %}
         {# ---- Thread View (D-03, D-04, D-05, D-11, D-12) ---- #}
-        <div style="padding-top:var(--space-lg);">
+        <div class="thread-layout">
             <a href="{{ url_for('inbox') }}" class="thread-back">
                 <span class="material-symbols-outlined" style="font-size:1.125rem;">arrow_back</span>
                 Back to Messages
@@ -134,8 +134,5 @@
 {% endblock %}
 
 {% block scripts %}
-{% if mode == 'thread' %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
-{% endif %}
 <script src="{{ url_for('static', filename='js/inbox.js') }}" defer></script>
 {% endblock %}

@@ -2206,7 +2206,13 @@ section {
     gap: 4px;
     padding: var(--space-md);
     max-width: 800px;
-    margin: 0 auto;
+
+}
+
+.inbox-page--thread .chat-container {
+    flex: 1 1 0%;
+    min-height: 0;
+    overflow-y: auto;
 }
 
 .chat-bubble {
@@ -2249,6 +2255,27 @@ section {
     padding-top: 80px;
     min-height: 100vh;
     background: var(--color-background);
+}
+
+.inbox-page--thread {
+    padding: 80px 0 0 0;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.thread-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 var(--space-md);
+    height: 100%;
+    overflow: hidden;
+}
+
+.thread-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding-top: var(--space-md);
 }
 
 .inbox-header {
@@ -2385,6 +2412,7 @@ section {
     background: var(--color-surface-low);
     border-radius: var(--radius-lg);
     margin-bottom: var(--space-md);
+    flex-shrink: 0;
 }
 
 .thread-back {
@@ -2396,6 +2424,7 @@ section {
     font-size: 0.9375rem;
     font-weight: 700;
     margin-bottom: var(--space-md);
+    flex-shrink: 0;
 }
 
 .thread-back:hover {
@@ -2422,6 +2451,7 @@ section {
     font-size: 0.9375rem;
     text-align: center;
     margin-bottom: var(--space-md);
+    flex-shrink: 0;
 }
 
 .thread-notice--sold {
@@ -2442,6 +2472,7 @@ section {
     background: var(--color-surface-lowest);
     border-radius: var(--radius-lg);
     margin-top: var(--space-md);
+    flex-shrink: 0;
 }
 
 .thread-reply .form-textarea {
