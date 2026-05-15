@@ -34,9 +34,9 @@ upload validation against content-type spoofing.
 | UWA ID | Name | GitHub username |
 |--------|------|-----------------|
 | 24267814 | Yuxing Zhou | [@zyxasd707](https://github.com/zyxasd707) |
-| _TODO_ | Gaganish Yadav | [@gaganishyadav](https://github.com/gaganishyadav) |
-| _TODO_ | Nicholas Tiew | [@Nickguin](https://github.com/Nickguin) |
-| _TODO_ | Sawetr Suchit-rattanant | [@sawetr](https://github.com/sawetr) |
+| 24552039 | Gaganish Yadav | [@gaganishyadav](https://github.com/gaganishyadav) |
+| 24450531| Nicholas Tiew | [@Nickguin](https://github.com/Nickguin) |
+| 24500678 | Sawetr Suchit-rattanant | [@sawetr](https://github.com/sawetr) |
 
 > Teammates: please replace the `TODO` cells with your UWA student IDs.
 
@@ -131,7 +131,7 @@ Then open `.env` and set:
 | `MAIL_SERVER`, `MAIL_PORT`, `MAIL_USE_TLS` | SMTP server for sending OTP emails. Defaults work for Gmail. |
 | `MAIL_USERNAME`, `MAIL_PASSWORD` | Your SMTP credentials (Gmail requires an *app password*, not your account password). |
 | `MAIL_DEFAULT_SENDER` | The `From` address shown on outgoing emails. |
-| `MAIL_SUPPRESS_SEND` | Set to `true` for local development — OTP codes will be logged to the console instead of actually emailed. Set to `false` only when SMTP is correctly configured. |
+| `MAIL_SUPPRESS_SEND` | Set to `true` for local development — OTP codes will be logged to the console instead of actually emailed. Set to `false` only when SMTP is correctly configured. | set this to true the OTP will sent to the console.
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Used by the `seed-admin` CLI command to create the initial admin account. |
 
 ### Set up the database
