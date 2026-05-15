@@ -397,7 +397,7 @@ def init_routes(app):
             listing.sold_at = _utcnow()
             db.session.commit()
             flash('Listing marked as sold.', 'success')
-        return redirect(url_for('dashboard'))
+        return redirect(request.referrer or url_for('dashboard'))
 
     @app.route('/edit-profile', methods=['POST'])
     @email_verified_required
