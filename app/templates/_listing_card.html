@@ -4,12 +4,12 @@
 
 {% macro listing_card(listing, show_actions=false, current_user_id=none, is_admin=false) %}
 <article class="ad-card {{ 'ad-card--sold' if listing.status == 'sold' }}" data-id="{{ listing.id }}">
-    <a href="{{ url_for('listing_detail', listing_id=listing.id) }}" class="ad-card-image">
+    <a href="{{ url_for('listing_detail', listing_id=listing.id) }}" class="ad-card-image" aria-label="View {{ listing.title }}">
         {% if listing.image_path %}
-        <img src="{{ url_for('static', filename='uploads/' + listing.image_path) }}" alt="{{ listing.title }}">
+        <img src="{{ url_for('static', filename='uploads/' + listing.image_path) }}" alt="Photo of {{ listing.title }}">
         {% else %}
-        <div class="ad-card-placeholder">
-            <span class="material-symbols-outlined">photo_camera</span>
+        <div class="ad-card-placeholder" role="img" aria-label="No photo provided">
+            <span class="material-symbols-outlined" aria-hidden="true">photo_camera</span>
         </div>
         {% endif %}
         <span class="ad-card-status status-{{ listing.status }}">{{ listing.status | capitalize }}</span>
