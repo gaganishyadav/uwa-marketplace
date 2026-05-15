@@ -125,7 +125,7 @@ def register_socket_events():
             'sender_id': user_id,
             'sender_name': sender.display_name if sender else 'Unknown',
             'content': msg.content,
-            'created_at_formatted': msg.created_at.strftime('%d %b %H:%M'),
+            'created_at_iso': msg.created_at.replace(tzinfo=timezone.utc).isoformat(),
         }, room=room)
 
     @socketio.on('typing')
