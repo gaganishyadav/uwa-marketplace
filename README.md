@@ -131,7 +131,7 @@ Then open `.env` and set:
 | `MAIL_SERVER`, `MAIL_PORT`, `MAIL_USE_TLS` | SMTP server for sending OTP emails. Defaults work for Gmail. |
 | `MAIL_USERNAME`, `MAIL_PASSWORD` | Your SMTP credentials (Gmail requires an *app password*, not your account password). |
 | `MAIL_DEFAULT_SENDER` | The `From` address shown on outgoing emails. |
-| `MAIL_SUPPRESS_SEND` | Set to `true` for local development — OTP codes will be logged to the console instead of actually emailed. Set to `false` only when SMTP is correctly configured. |
+| `MAIL_SUPPRESS_SEND` | Set to `true` for local development — OTP codes will be logged to the console instead of actually emailed. Set to `false` only when SMTP is correctly configured. | set this to true the OTP will sent to the console.
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Used by the `seed-admin` CLI command to create the initial admin account. |
 
 ### Set up the database

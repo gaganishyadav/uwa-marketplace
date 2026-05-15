@@ -1,10 +1,10 @@
 {# Message Seller Modal (per D-01, D-10) #}
-<div class="modal-overlay" id="modal-message" role="dialog" aria-modal="true" aria-label="Message Seller">
+<div class="modal-overlay" id="modal-message" role="dialog" aria-modal="true" aria-labelledby="modal-message-title">
     <div class="modal">
         <div class="modal-header">
-            <h2 class="modal-title">Message Seller</h2>
-            <button class="modal-close" aria-label="Close">
-                <span class="material-symbols-outlined">close</span>
+            <h2 class="modal-title" id="modal-message-title">Message Seller</h2>
+            <button type="button" class="modal-close" aria-label="Close">
+                <span class="material-symbols-outlined" aria-hidden="true">close</span>
             </button>
         </div>
         <form id="form-message" method="post" data-listing-id="{{ listing.id }}">

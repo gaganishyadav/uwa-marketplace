@@ -7,10 +7,10 @@
             {# ---- Image (D-08) ---- #}
             <div class="item-image" style="position:relative;">
                 {% if listing.image_path %}
-                <img src="{{ url_for('static', filename='uploads/' + listing.image_path) }}" alt="{{ listing.title }}">
+                <img src="{{ url_for('static', filename='uploads/' + listing.image_path) }}" alt="Photo of {{ listing.title }}">
                 {% else %}
-                <div style="width:100%;min-height:400px;display:flex;align-items:center;justify-content:center;background:var(--color-surface-low);border-radius:var(--radius-lg);">
-                    <span class="material-symbols-outlined" style="font-size:5rem;opacity:0.3;color:var(--color-outline);">photo_camera</span>
+                <div role="img" aria-label="No photo provided" style="width:100%;min-height:400px;display:flex;align-items:center;justify-content:center;background:var(--color-surface-low);border-radius:var(--radius-lg);">
+                    <span class="material-symbols-outlined" aria-hidden="true" style="font-size:5rem;opacity:0.3;color:var(--color-outline);">photo_camera</span>
                 </div>
                 {% endif %}
                 {% if listing.status == 'sold' %}
@@ -29,10 +29,10 @@
                 <p class="item-description">{{ listing.description }}</p>
 
                 <div class="item-meta">
-                    <span><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;">category</span> {{ listing.category }}</span>
-                    <span><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;">star</span> {{ listing.condition }}</span>
-                    <span><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;">location_on</span> {{ listing.meetup_spot }}</span>
-                    <span><span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;">schedule</span> {{ listing.created_at|local_time('%d %b %Y') }}</span>
+                    <span><span class="material-symbols-outlined" aria-hidden="true" style="font-size:1rem;vertical-align:middle;">category</span> {{ listing.category }}</span>
+                    <span><span class="material-symbols-outlined" aria-hidden="true" style="font-size:1rem;vertical-align:middle;">star</span> {{ listing.condition }}</span>
+                    <span><span class="material-symbols-outlined" aria-hidden="true" style="font-size:1rem;vertical-align:middle;">location_on</span> {{ listing.meetup_spot }}</span>
+                    <span><span class="material-symbols-outlined" aria-hidden="true" style="font-size:1rem;vertical-align:middle;">schedule</span> {{ listing.created_at|local_time('%d %b %Y') }}</span>
                 </div>
 
                 {# ---- Actions (D-09, D-10) ---- #}
@@ -89,7 +89,7 @@
                 {% if listing.meetup_spot %}
                 <div class="item-meetup">
                     <h3 class="item-meetup-title">
-                        <span class="material-symbols-outlined" style="font-size:1.1rem;vertical-align:middle;">location_on</span>
+                        <span class="material-symbols-outlined" aria-hidden="true" style="font-size:1.1rem;vertical-align:middle;">location_on</span>
                         Meetup location
                     </h3>
                     <p class="item-meetup-name">{{ listing.meetup_spot }}</p>

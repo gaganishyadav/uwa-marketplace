@@ -42,6 +42,9 @@
 
             {% if messages %}
             <div class="chat-container"
+                 role="log"
+                 aria-live="polite"
+                 aria-relevant="additions"
                  data-listing-id="{{ thread_listing.id if thread_listing else '' }}"
                  data-other-user-id="{{ other_user_id }}"
                  data-current-user-id="{{ current_user_id }}"
@@ -63,7 +66,7 @@
             {% endif %}
 
             {% if thread_listing and thread_listing.status == 'active' and other_user_id != current_user_id %}
-            <div class="typing-indicator" style="display:none;font-size:0.8rem;color:var(--color-outline);padding:var(--space-xs) var(--space-sm);">
+            <div class="typing-indicator" role="status" aria-live="polite" style="display:none;font-size:0.8rem;color:var(--color-outline);padding:var(--space-xs) var(--space-sm);">
                 <span class="typing-indicator-name"></span> is typing...
             </div>
             <form class="thread-reply" id="form-thread-reply" action="{{ url_for('thread_reply', listing_id=thread_listing.id, with_user_id=other_user_id) }}" method="post">
