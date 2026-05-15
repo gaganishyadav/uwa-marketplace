@@ -383,13 +383,7 @@ def init_routes(app):
     @email_verified_required
     def delete_listing(listing_id):
         listing = get_owned_listing_or_403(listing_id)
-        # Delete image from disk
-        if listing.image_path:
-            img_path = os.path.join(app.config['UPLOAD_FOLDER'], listing.image_path)
-            if os.path.exists(img_path):
-                os.remove(img_path)
         listing.status = 'deleted'
-        listing.image_path = None
         db.session.commit()
         flash('Listing deleted.', 'success')
         return redirect(url_for('dashboard'))

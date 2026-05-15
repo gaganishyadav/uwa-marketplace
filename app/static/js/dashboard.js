@@ -51,6 +51,7 @@ $(document).ready(function () {
     $('#btn-post-ad, #nav-post-btn').on('click', function () {
         // Reset modal to "List an Item" state
         $('#modal-post-ad .modal-title').text('List an Item');
+        $('#btn-submit-listing').text('Post Listing');
         $('#form-post-ad')[0].reset();
         $('#edit-listing-id').val('');
         $('#form-post-ad').attr('action', '/create-listing');
@@ -61,6 +62,7 @@ $(document).ready(function () {
     // ─── Edit Ad Modal ──────────────────────────────────────────────────────
     window.openEditModal = function (id, title, category, condition, price, description, meetupSpot) {
         $('#modal-post-ad .modal-title').text('Edit Ad');
+        $('#btn-submit-listing').text('Update Listing');
         $('#edit-listing-id').val(id);
         $('#form-post-ad').attr('action', '/edit-listing/' + id);
         $('#ad-title').val(title);
