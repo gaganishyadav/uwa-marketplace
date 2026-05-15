@@ -159,6 +159,14 @@ $(document).ready(function () {
             }, 2000);
         });
 
+        // Enter to send, Shift+Enter for newline
+        $('#thread-reply-content').on('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                $('#form-thread-reply').trigger('submit');
+            }
+        });
+
         // Intercept thread reply form — send via WebSocket instead of HTTP POST
         $('#form-thread-reply').on('submit', function (e) {
             e.preventDefault();
