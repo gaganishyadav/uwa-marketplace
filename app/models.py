@@ -66,22 +66,48 @@ class User(db.Model):
             return 0
         return int((self.lockout_until - _utcnow()).total_seconds())
 
-    @staticmethod
-    def generate_reset_token(email, secret_key):
-        """Generate a timed, signed reset token (per D-17, D-18)."""
-        s = URLSafeTimedSerializer(secret_key)
-        return s.dumps({'email': email}, salt='password-reset-salt')
+    # Last N chars of password_hash embedded in the reset token as a
+    # "single-use fingerprint". A successful reset changes password_hash, so
+    # the fingerprint in any previously issued token no longer matches and
+    # the token becomes effectively dead -- replay attacks within max_age
+    # are blocked.
+    _RESET_TOKEN_PH_LEN = 16
 
     @staticmethod
-    def verify_reset_token(token, secret_key, max_age=3600):
+    def generate_reset_token(email, secret_key, password_hash=None):
+        """Generate a timed, signed reset token (per D-17, D-18).
+
+        If `password_hash` is supplied, a 16-char fingerprint of it is
+        embedded so completing a reset (which changes the hash) silently
+        invalidates this token for further use.
+        """
+        payload = {'email': email}
+        if password_hash:
+            payload['ph'] = password_hash[-User._RESET_TOKEN_PH_LEN:]
+        s = URLSafeTimedSerializer(secret_key)
+        return s.dumps(payload, salt='password-reset-salt')
+
+    @staticmethod
+    def verify_reset_token(token, secret_key, max_age=3600,
+                           expected_password_hash=None):
         """Verify reset token. Returns email if valid, None otherwise.
-        max_age defaults to 3600 seconds (1 hour) per D-18."""
+        max_age defaults to 3600 seconds (1 hour) per D-18.
+
+        If `expected_password_hash` is supplied, the token's embedded
+        fingerprint must match the last 16 chars of that hash, otherwise
+        the token is treated as invalid (single-use enforcement).
+        """
         s = URLSafeTimedSerializer(secret_key)
         try:
             data = s.loads(token, salt='password-reset-salt', max_age=max_age)
-            return data['email']
         except (SignatureExpired, BadSignature):
             return None
+        if expected_password_hash is not None:
+            token_ph = data.get('ph')
+            current_ph = expected_password_hash[-User._RESET_TOKEN_PH_LEN:]
+            if token_ph != current_ph:
+                return None
+        return data.get('email')
 
 
 class Listing(db.Model):

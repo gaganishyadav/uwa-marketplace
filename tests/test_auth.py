@@ -235,7 +235,10 @@ def test_reset_password_valid_token(client, app):
     with app.app_context():
         uid = create_verified_user(app)
         user = db.session.get(User, uid)
-        token = User.generate_reset_token(user.email, app.config['SECRET_KEY'])
+        token = User.generate_reset_token(
+            user.email, app.config['SECRET_KEY'],
+            password_hash=user.password_hash,
+        )
 
     response = client.get(f'/reset-password/{token}')
     assert response.status_code == 200
@@ -272,7 +275,10 @@ def test_reset_password_token_cannot_be_replayed(client, app):
     with app.app_context():
         uid = create_verified_user(app)
         user = db.session.get(User, uid)
-        token = User.generate_reset_token(user.email, app.config['SECRET_KEY'])
+        token = User.generate_reset_token(
+            user.email, app.config['SECRET_KEY'],
+            password_hash=user.password_hash,
+        )
 
     # First use: legitimate reset
     r1 = client.post(f'/reset-password/{token}', data={
