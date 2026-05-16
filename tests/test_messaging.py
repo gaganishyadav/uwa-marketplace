@@ -586,3 +586,42 @@ class TestInboxAtScale:
             "last buyer's row missing -- the conversation-list query may have "
             "silently capped at <60 rows (e.g. an undocumented LIMIT)"
         )
+
+    def test_inbox_per_conversation_unread_count_correct_at_scale(self, app, client):
+        """With 60 distinct unread conversations, the inbox-row--unread class
+        appears once per conversation. Catches an unread_map aggregation that
+        collapses distinct (listing_id, sender_id) pairs."""
+        seller_id = _create_verified_user(
+            app, 'U Seller', 'unread-seller@test.student.uwa.edu.au'
+        )
+        listing_id = _create_listing(app, seller_id, title='Unread Scale')
+
+        N = 60
+        with app.app_context():
+            for i in range(N):
+                buyer = User(
+                    display_name=f'UB{i}',
+                    email=f'ub{i}@scale.student.uwa.edu.au',
+                )
+                buyer.set_password('Password1')
+                buyer.email_verified = True
+                db.session.add(buyer)
+                db.session.flush()
+                db.session.add(Message(
+                    listing_id=listing_id,
+                    sender_id=buyer.id,
+                    receiver_id=seller_id,
+                    content=f'Unread {i}',
+                ))
+            db.session.commit()
+
+        _login(client, 'unread-seller@test.student.uwa.edu.au')
+        resp = client.get('/inbox')
+        assert resp.status_code == 200
+        rendered_unread_rows = resp.data.count(b'inbox-row--unread')
+        assert rendered_unread_rows == N, (
+            f'expected {N} unread rows on the inbox; got {rendered_unread_rows}. '
+            f'The unread_map aggregation in /inbox may be collapsing distinct '
+            f'(listing_id, sender_id) pairs, or the conversation-list query is '
+            f'returning fewer rows than seeded.'
+        )
