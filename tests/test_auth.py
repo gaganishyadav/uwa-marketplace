@@ -259,6 +259,54 @@ def test_reset_password_expired_token(client, app):
     assert '/forgot-password' in response.headers['Location']
 
 
+def test_reset_password_token_cannot_be_replayed(client, app):
+    """A reset token must be single-use.
+
+    Threat: if an attacker captures the reset email (e.g. mailbox compromise
+    after the legitimate reset) they can replay the same token for the entire
+    max_age window (currently 1 hour) and silently overwrite the password
+    again. Mitigation: the token signature must bind to the user's current
+    password hash, so completing one reset invalidates the token for further
+    use.
+    """
+    with app.app_context():
+        uid = create_verified_user(app)
+        user = db.session.get(User, uid)
+        token = User.generate_reset_token(user.email, app.config['SECRET_KEY'])
+
+    # First use: legitimate reset
+    r1 = client.post(f'/reset-password/{token}', data={
+        'password': 'FirstReset1',
+        'confirm_password': 'FirstReset1',
+    }, follow_redirects=False)
+    assert r1.status_code == 302, "first reset should succeed and redirect to /auth"
+
+    # Replay: attacker resubmits the SAME token
+    r2 = client.post(f'/reset-password/{token}', data={
+        'password': 'AttackerPw1',
+        'confirm_password': 'AttackerPw1',
+    }, follow_redirects=False)
+    assert r2.status_code == 302, "replay should be handled (redirect, not 200/render)"
+    assert '/forgot-password' in r2.headers['Location'], (
+        f"reset token was replayable -- the second POST with the same token "
+        f"was accepted (Location={r2.headers.get('Location')!r}). Expected "
+        f"redirect to /forgot-password with a 'link is invalid' flash. The "
+        f"token signature does not bind to the user's password hash, so "
+        f"completing a reset does not invalidate the token."
+    )
+
+    # Confirm the attacker's password was NOT applied
+    with app.app_context():
+        user = User.query.filter_by(email='verified@student.uwa.edu.au').first()
+        assert user.check_password('FirstReset1') is True, (
+            "after a successful first reset, the password must remain "
+            "'FirstReset1' even after a replay attempt"
+        )
+        assert user.check_password('AttackerPw1') is False, (
+            "the attacker's replay should not have overwritten the password"
+        )
+
+
 # ---------------------------------------------------------------------------
 # Additional route access / edge case tests
 # ---------------------------------------------------------------------------
