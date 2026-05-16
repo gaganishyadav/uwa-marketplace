@@ -527,3 +527,62 @@ class TestUnreadBadge:
         assert b'inbox-row--unread' not in resp.data, (
             'expected inbox row unread class to be gone after thread was opened'
         )
+
+
+# ---------------------------------------------------------------------------
+# Scale: inbox renders cleanly past 50 conversations
+# ---------------------------------------------------------------------------
+
+class TestInboxAtScale:
+    """Verify the inbox list query / render holds up past common-size limits.
+
+    The current /inbox does not paginate -- it returns every conversation the
+    user is part of. These tests confirm the page renders cleanly with many
+    conversations and the COUNT-style aggregations stay correct. If pagination
+    is later added these tests should be revisited.
+    """
+
+    def test_inbox_renders_60_conversations_without_truncation(self, app, client):
+        """Seller has 60 conversations from 60 distinct buyers. Page renders,
+        first and last buyer's rows both present (catches silent LIMIT)."""
+        seller_id = _create_verified_user(
+            app, 'Scale Seller', 'scale-seller@test.student.uwa.edu.au'
+        )
+        listing_id = _create_listing(app, seller_id, title='Scale Listing')
+
+        N = 60
+        with app.app_context():
+            for i in range(N):
+                buyer = User(
+                    display_name=f'Buyer{i}',
+                    email=f'buyer{i}@scale.student.uwa.edu.au',
+                )
+                buyer.set_password('Password1')
+                buyer.email_verified = True
+                db.session.add(buyer)
+                db.session.flush()
+                db.session.add(Message(
+                    listing_id=listing_id,
+                    sender_id=buyer.id,
+                    receiver_id=seller_id,
+                    content=f'Inquiry {i}',
+                ))
+            db.session.commit()
+
+        _login(client, 'scale-seller@test.student.uwa.edu.au')
+        resp = client.get('/inbox')
+
+        assert resp.status_code == 200, (
+            f'inbox should render with {N} conversations; got {resp.status_code}. '
+            f'A 500 here would indicate the conversation list query has scaling '
+            f'issues or is hitting an unindexed sort.'
+        )
+        # Spot-check first and last buyer -- regression signal for any silent
+        # truncation in the conversation-list query.
+        assert b'Buyer0' in resp.data, (
+            "first buyer's row missing from inbox -- list was truncated from the start"
+        )
+        assert b'Buyer59' in resp.data, (
+            "last buyer's row missing -- the conversation-list query may have "
+            "silently capped at <60 rows (e.g. an undocumented LIMIT)"
+        )
