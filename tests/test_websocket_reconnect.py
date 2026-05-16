@@ -85,3 +85,61 @@ def test_socket_can_be_disconnected_and_reconnected(app, client):
         "disconnect"
     )
     sio_b.disconnect()
+
+
+def test_socket_can_rejoin_thread_after_reconnect(app, client, monkeypatch):
+    """After a disconnect, a reconnected client can re-emit join_thread
+    on the same conversation and a send_message broadcast still reaches
+    the reconnected client.
+
+    Models the 'tab idle, socket drops, user clicks back' flow: the
+    Socket.IO client will fire join_thread again on reconnect and the
+    server must accept it idempotently."""
+    # CSRF is enforced inside handle_send_message via flask_wtf.csrf
+    # .validate_csrf, which ignores WTF_CSRF_ENABLED. For the socket-level
+    # test we replace it with a no-op so we can focus on the reconnect
+    # path rather than re-aligning session-bound CSRF state.
+    monkeypatch.setattr('app.socket_events.validate_csrf', lambda token: None)
+
+    seller_id = _make_verified(app, 'Seller', 'seller-wsr@test.student.uwa.edu.au')
+    buyer_id = _make_verified(app, 'Buyer', 'buyer-wsr@test.student.uwa.edu.au')
+    listing_id = _make_listing(app, seller_id)
+    _seed_thread(app, sender_id=buyer_id, receiver_id=seller_id,
+                 listing_id=listing_id, content='Initial message')
+
+    _login_session(client, buyer_id)
+
+    # Initial connect + join_thread, then drop.
+    sio_a = socketio.test_client(app, flask_test_client=client)
+    assert sio_a.is_connected()
+    sio_a.emit('join_thread', {'listing_id': listing_id, 'other_user_id': seller_id})
+    sio_a.disconnect()
+
+    # Reconnect + re-join the same thread. Must not raise / reject.
+    sio_b = socketio.test_client(app, flask_test_client=client)
+    assert sio_b.is_connected(), "reconnection refused after disconnect"
+    sio_b.emit('join_thread', {'listing_id': listing_id, 'other_user_id': seller_id})
+
+    # Verify the reconnected client is back in the room: emit
+    # send_message and confirm a 'new_message' event is delivered back.
+    sio_b.emit('send_message', {
+        'listing_id': listing_id,
+        'other_user_id': seller_id,
+        'content': 'reply after reconnect',
+        'csrf_token': 'irrelevant',  # validate_csrf is monkeypatched above
+    })
+    received = sio_b.get_received()
+    new_message_events = [e for e in received if e['name'] == 'new_message']
+    assert new_message_events, (
+        f"after reconnection + join_thread, the reconnected client did not "
+        f"receive a 'new_message' broadcast for its own send_message. "
+        f"Events received: {[e['name'] for e in received]!r}. The "
+        f"participant check may be holding stale state from the first "
+        f"connection, or join_thread is not idempotent across reconnects."
+    )
+    # The broadcasted payload should carry the message text we just sent.
+    payload = new_message_events[-1]['args'][0]
+    assert payload.get('content') == 'reply after reconnect', (
+        f"reconnect+rejoin+send roundtrip produced an unexpected payload: {payload!r}"
+    )
+    sio_b.disconnect()
