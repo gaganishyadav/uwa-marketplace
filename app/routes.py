@@ -383,6 +383,13 @@ def init_routes(app):
     @email_verified_required
     def delete_listing(listing_id):
         listing = get_owned_listing_or_403(listing_id)
+        # Remove the uploaded image from disk so static/uploads doesn't accumulate
+        # orphans (mirrors what admin_delete_listing already does).
+        if listing.image_path:
+            img_path = os.path.join(app.config['UPLOAD_FOLDER'], listing.image_path)
+            if os.path.exists(img_path):
+                os.remove(img_path)
+            listing.image_path = None
         listing.status = 'deleted'
         db.session.commit()
         flash('Listing deleted.', 'success')
