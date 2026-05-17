@@ -743,7 +743,13 @@ def init_routes(app):
         if form.validate_on_submit():
             user = User.query.filter_by(email=form.email.data).first()
             if user:
-                token = User.generate_reset_token(user.email, app.secret_key)
+                # Bind the token to the user's current password_hash so the
+                # token becomes invalid as soon as the password is changed
+                # (single-use enforcement).
+                token = User.generate_reset_token(
+                    user.email, app.secret_key,
+                    password_hash=user.password_hash,
+                )
                 reset_url = url_for('reset_password', token=token, _external=True)
                 try:
                     msg = MailMessage(
@@ -759,12 +765,20 @@ def init_routes(app):
 
     @app.route('/reset-password/<token>', methods=['GET', 'POST'])
     def reset_password(token):
+        # First pass: decode without binding to confirm signature + expiry
         email = User.verify_reset_token(token, app.secret_key)
         if not email:
             flash('This reset link is invalid or has expired.', 'error')
             return redirect(url_for('forgot_password'))
         user = User.query.filter_by(email=email).first()
         if not user:
+            flash('This reset link is invalid or has expired.', 'error')
+            return redirect(url_for('forgot_password'))
+        # Second pass: verify the token's embedded password-hash fingerprint
+        # still matches the user's current hash. A previously completed reset
+        # changes the hash and so invalidates this token (no replay).
+        if User.verify_reset_token(token, app.secret_key,
+                                   expected_password_hash=user.password_hash) is None:
             flash('This reset link is invalid or has expired.', 'error')
             return redirect(url_for('forgot_password'))
         form = ResetPasswordForm()
