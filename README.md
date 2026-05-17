@@ -29,6 +29,22 @@ verification** to keep unverified accounts out of the database, and includes
 per-account login lockout, per-sender message rate limits, and magic-byte image
 upload validation against content-type spoofing.
 
+## User stories
+
+The project was planned around the following user stories (our Checkpoint 2
+planning artifact):
+
+1. As a student, I want to create an account using my university email so that only verified students can access the marketplace.
+2. As a seller, I want to list items for sale with photos, descriptions, and prices so that other students can see what I'm offering.
+3. As a buyer, I want to search and filter listings by category, price, and condition so that I can quickly find what I need.
+4. As a user, I want to message other students on the platform so that I can negotiate prices or ask questions safely.
+5. As a seller, I want to edit or remove my listings so that I can keep my items up to date or remove sold items.
+6. As a buyer, I want to save or bookmark listings so that I can come back to items I'm interested in later.
+7. As a user, I want to report suspicious or inappropriate listings so that the platform stays safe and trustworthy.
+8. As a student, I want to see seller profiles with ratings or reviews so that I can decide whether to trust a seller.
+9. As a user, I want notifications when I receive messages or when an item I'm watching changes so that I don't miss important updates.
+10. As a buyer or seller, I want to arrange meetups on campus or specify preferred locations so that transactions can happen conveniently and safely.
+
 ## Team members
 
 | UWA ID | Name | GitHub username |
@@ -37,8 +53,6 @@ upload validation against content-type spoofing.
 | 24552039 | Gaganish Yadav | [@gaganishyadav](https://github.com/gaganishyadav) |
 | 24450531 | Nicholas Tiew | [@Nickguin](https://github.com/Nickguin) |
 | 24500678 | Sawetr Suchit-rattanant | [@sawetr](https://github.com/sawetr) |
-
-> Teammates: please replace the `TODO` cells with your UWA student IDs.
 
 ## Tech stack
 
@@ -188,24 +202,26 @@ pip install -r requirements.txt
 
 ## Running the tests
 
-This project ships with **96 unit tests** and **5 Selenium WebDriver system
+This project ships with **127 unit tests** and **5 Selenium WebDriver system
 tests**, satisfying the rubric's *"5+ unit tests and 5+ selenium tests, run
 against a live version of the server"* requirement.
 
 ### Unit tests (fast)
 
 These exercise the routes and models through Flask's test client. They run in
-under 15 seconds and don't need a browser. The suite covers all the core
+around half a minute and don't need a browser. The suite covers all the core
 domains of the application:
 
 | File | What it tests |
 |---|---|
+| `test_accessibility.py` | Accessibility markup: `<main>` landmark on every page, keyboard skip link, modal `role="dialog"` semantics, `aria-live` gallery grid, `aria-hidden` decorative icons |
 | `test_admin.py` | Admin moderation actions: ban / unban / permanent-ban user, delete listing, feature listing, admin seed CLI command |
-| `test_auth.py` | Registration (session-based OTP flow), OTP verification, login, lockout after repeated failed attempts, password reset, logout |
-| `test_marketplace.py` | Listing CRUD: create with image upload, edit, mark-sold, delete; gallery and dashboard rendering; magic-byte image validation |
-| `test_messaging.py` | Buyer-seller messaging: send, inbox, thread reply, sold-listing badges, per-sender rate limit (20/min) |
+| `test_auth.py` | Registration (session-based OTP flow), OTP verification, login, lockout after repeated failed attempts, password reset incl. single-use (replay-proof) reset tokens, logout |
+| `test_marketplace.py` | Listing CRUD: create with image upload, edit, mark-sold, relist, delete; gallery and dashboard rendering (soft-deleted listings excluded); magic-byte image validation |
+| `test_messaging.py` | Buyer-seller messaging: send, inbox, thread reply, sold-listing badges, unread badge + per-conversation counts, inbox rendering at scale, per-sender rate limit (20/min) |
 | `test_models.py` | Model-level invariants: password hashing, reset token generation/verification, user defaults |
 | `test_search.py` | `/api/search` route: keyword, category, price-range, combined filters, empty state, LIKE-wildcard escaping |
+| `test_websocket_reconnect.py` | WebSocket reconnection: client disconnect/reconnect under the same session, thread rejoin and message broadcast after reconnect |
 
 #### Run all unit tests
 
@@ -214,23 +230,26 @@ domains of the application:
 pytest tests/ -v --ignore-glob='tests/test_selenium_*.py'
 
 # Or list each file explicitly
-pytest tests/test_admin.py tests/test_auth.py tests/test_marketplace.py \
-       tests/test_messaging.py tests/test_models.py tests/test_search.py -v
+pytest tests/test_accessibility.py tests/test_admin.py tests/test_auth.py \
+       tests/test_marketplace.py tests/test_messaging.py tests/test_models.py \
+       tests/test_search.py tests/test_websocket_reconnect.py -v
 ```
 
-Expected result: `96 passed in ~15s`.
+Expected result: `127 passed`.
 
 #### Run a single unit-test file
 
 Useful when iterating on one area of the codebase:
 
 ```bash
-pytest tests/test_admin.py -v        # admin moderation
-pytest tests/test_auth.py -v         # registration, OTP, login, lockout
-pytest tests/test_marketplace.py -v  # listing CRUD + upload
-pytest tests/test_messaging.py -v    # messaging + rate limit
-pytest tests/test_models.py -v       # model invariants
-pytest tests/test_search.py -v       # /api/search filters
+pytest tests/test_accessibility.py -v      # accessibility markup
+pytest tests/test_admin.py -v              # admin moderation
+pytest tests/test_auth.py -v               # registration, OTP, login, lockout
+pytest tests/test_marketplace.py -v        # listing CRUD + upload + relist
+pytest tests/test_messaging.py -v          # messaging + unread badge + rate limit
+pytest tests/test_models.py -v             # model invariants
+pytest tests/test_search.py -v             # /api/search filters
+pytest tests/test_websocket_reconnect.py -v  # websocket reconnection
 ```
 
 #### Run a single test function
@@ -309,7 +328,7 @@ DEMO_PAUSE=3 pytest tests/test_selenium_message_display.py -v
 pytest -v
 ```
 
-Expected result: `101 passed in ~55s` (96 unit + 5 selenium).
+Expected result: `132 passed` (127 unit + 5 selenium).
 
 ---
 
@@ -326,7 +345,7 @@ uwa-marketplace/
 │   ├── static/              # CSS, JS, uploaded images
 │   └── templates/           # Jinja2 templates
 ├── migrations/              # Alembic database migrations
-├── tests/                   # 96 unit tests + 5 selenium tests
+├── tests/                   # 127 unit tests + 5 selenium tests
 ├── .env.example             # Template for required environment variables
 ├── requirements.txt         # Python dependencies
 ├── run.py                   # Application entry point
