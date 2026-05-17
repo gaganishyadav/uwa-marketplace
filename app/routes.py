@@ -308,8 +308,12 @@ def init_routes(app):
     @email_verified_required
     def dashboard():
         user = db.session.get(User, session['user_id'])
-        my_listings = Listing.query.filter_by(user_id=user.id).order_by(
-            Listing.created_at.desc()).all()
+        # Exclude soft-deleted listings so they don't linger as orphan cards
+        # in "My Listings" (their image is also gone after delete_listing).
+        my_listings = Listing.query.filter(
+            Listing.user_id == user.id,
+            Listing.status != 'deleted',
+        ).order_by(Listing.created_at.desc()).all()
         active_count = sum(1 for l in my_listings if l.status == 'active')
         sold_count = sum(1 for l in my_listings if l.status == 'sold')
         listing_form = ListingForm()
