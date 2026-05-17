@@ -410,6 +410,18 @@ def init_routes(app):
         # detail page, which is the case the selenium system test catches.)
         return redirect(url_for('dashboard'))
 
+    @app.route('/relist/<int:listing_id>', methods=['POST'])
+    @email_verified_required
+    def relist(listing_id):
+        """Undo a Mark Sold: return a sold listing to 'active' (per #86)."""
+        listing = get_owned_listing_or_403(listing_id)
+        if listing.status == 'sold':
+            listing.status = 'active'
+            listing.sold_at = None
+            db.session.commit()
+            flash('Listing relisted.', 'success')
+        return redirect(url_for('dashboard'))
+
     @app.route('/edit-profile', methods=['POST'])
     @email_verified_required
     def edit_profile():
