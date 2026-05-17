@@ -404,7 +404,11 @@ def init_routes(app):
             listing.sold_at = _utcnow()
             db.session.commit()
             flash('Listing marked as sold.', 'success')
-        return redirect(request.referrer or url_for('dashboard'))
+        # Always land the seller on /dashboard so they can see the listing
+        # in its new state alongside the rest of their inventory. (Falling
+        # back to request.referrer would leave them on the now-sold listing
+        # detail page, which is the case the selenium system test catches.)
+        return redirect(url_for('dashboard'))
 
     @app.route('/edit-profile', methods=['POST'])
     @email_verified_required
