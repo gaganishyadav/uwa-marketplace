@@ -1331,6 +1331,15 @@ section {
     background: rgba(255, 184, 28, 0.2);
 }
 
+.btn-ad-relist {
+    background: rgba(46, 125, 50, 0.1);
+    color: #2e7d32;
+}
+
+.btn-ad-relist:hover {
+    background: rgba(46, 125, 50, 0.2);
+}
+
 .btn-ad-delete {
     color: #c62828;
 }

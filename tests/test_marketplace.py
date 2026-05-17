@@ -506,3 +506,95 @@ def test_mark_sold(verified_client, app):
     with app.app_context():
         listing = db.session.get(Listing, lid)
         assert listing.status == 'sold'
+
+
+# ---------------------------------------------------------------------------
+# Relist tests (#86 -- undo an accidental Mark Sold)
+# ---------------------------------------------------------------------------
+
+def _make_listing(app, status='sold', title='Sold Item'):
+    """Create a listing owned by the first user; return its id.
+
+    Falls back to creating an owner if no user exists yet (so the helper
+    works for tests using the plain unauthenticated `client` fixture)."""
+    with app.app_context():
+        user = User.query.first()
+        if user is None:
+            user = User(display_name='Owner', email='owner@student.uwa.edu.au')
+            user.set_password('Password1')
+            user.email_verified = True
+            db.session.add(user)
+            db.session.flush()
+        listing = Listing(
+            user_id=user.id, title=title,
+            description='A listing used by relist tests.',
+            price=20.0, category='Electronics', condition='Good',
+            meetup_spot='Reid Library', status=status,
+        )
+        if status == 'sold':
+            from app.models import _utcnow
+            listing.sold_at = _utcnow()
+        db.session.add(listing)
+        db.session.commit()
+        return listing.id
+
+
+def test_relist_sold_listing(verified_client, app):
+    """Owner can relist a sold listing: status returns to active, sold_at cleared."""
+    lid = _make_listing(app, status='sold')
+
+    response = verified_client.post(f'/relist/{lid}', follow_redirects=False)
+    assert response.status_code == 302
+    assert '/dashboard' in response.headers['Location']
+
+    with app.app_context():
+        listing = db.session.get(Listing, lid)
+        assert listing.status == 'active', "relist should return the listing to 'active'"
+        assert listing.sold_at is None, "relist should clear sold_at"
+
+
+def test_relist_other_user_listing_forbidden(verified_client, second_user_client, app):
+    """A non-owner cannot relist someone else's listing."""
+    lid = _make_listing(app, status='sold')  # owned by first user
+
+    response = second_user_client.post(f'/relist/{lid}', follow_redirects=False)
+    assert response.status_code == 403
+
+    with app.app_context():
+        assert db.session.get(Listing, lid).status == 'sold', (
+            "a non-owner's relist attempt must not change the listing status"
+        )
+
+
+def test_relist_active_listing_is_noop(verified_client, app):
+    """Relisting an already-active listing is a harmless no-op (still active)."""
+    lid = _make_listing(app, status='active', title='Already Active')
+
+    response = verified_client.post(f'/relist/{lid}', follow_redirects=False)
+    assert response.status_code == 302
+
+    with app.app_context():
+        assert db.session.get(Listing, lid).status == 'active'
+
+
+def test_relist_requires_auth(client, app):
+    """POST /relist without login redirects to /auth and does not change state."""
+    lid = _make_listing(app, status='sold')
+
+    response = client.post(f'/relist/{lid}', follow_redirects=False)
+    assert response.status_code == 302
+    assert '/auth' in response.headers['Location']
+
+    with app.app_context():
+        assert db.session.get(Listing, lid).status == 'sold'
+
+
+def test_relist_button_shown_on_sold_dashboard_card(verified_client, app):
+    """The dashboard renders a Relist action for a sold listing."""
+    _make_listing(app, status='sold', title='Sold On Dashboard')
+
+    response = verified_client.get('/dashboard')
+    assert response.status_code == 200
+    assert b'Relist' in response.data, (
+        "a sold listing in My Listings should offer a Relist button"
+    )
