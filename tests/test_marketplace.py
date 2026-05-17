@@ -441,6 +441,41 @@ def test_delete_other_user_listing_forbidden(verified_client, second_user_client
     assert response.status_code == 403
 
 
+def test_dashboard_excludes_deleted_listings(verified_client, app):
+    """A soft-deleted listing must not appear in the owner's 'My Listings'.
+
+    delete_listing is a soft delete (status='deleted') and also strips the
+    image from disk. If the dashboard query does not exclude deleted rows,
+    the listing lingers as an orphan card with no image (issue #45 / #76).
+    """
+    with app.app_context():
+        user = User.query.first()
+        active = Listing(
+            user_id=user.id, title='Still Active Listing',
+            description='An active listing that should stay visible.',
+            price=12.0, category='Textbooks', condition='Good',
+            meetup_spot='Reid Library', status='active',
+        )
+        deleted = Listing(
+            user_id=user.id, title='Soft Deleted Listing',
+            description='A deleted listing that must not show on the dashboard.',
+            price=8.0, category='Supplies', condition='Fair',
+            meetup_spot='Oak Lawn', status='deleted',
+        )
+        db.session.add_all([active, deleted])
+        db.session.commit()
+
+    response = verified_client.get('/dashboard')
+    assert response.status_code == 200
+    assert b'Still Active Listing' in response.data, (
+        "the active listing should still be rendered in My Listings"
+    )
+    assert b'Soft Deleted Listing' not in response.data, (
+        "a soft-deleted listing leaked into My Listings -- the dashboard "
+        "query must exclude status='deleted' rows (issue #45)"
+    )
+
+
 # ---------------------------------------------------------------------------
 # Mark sold tests (MARKET-05)
 # ---------------------------------------------------------------------------
